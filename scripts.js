@@ -17512,9 +17512,31 @@ async function identificarCidade(lat, lng) {
 async function determinarCN(localidade) {
     if (!localidade) return '91'; // CN padrão caso não encontre a localidade
     
+    // Definir as regiões do Pará por coordenadas
+    const regioesPara = {
+        '91': { // Região Metropolitana de Belém e nordeste
+            minLat: -2.0,
+            maxLat: 0.0,
+            minLng: -49.0,
+            maxLng: -47.0
+        },
+        '93': { // Oeste do estado
+            minLat: -10.0,
+            maxLat: -1.0,
+            minLng: -58.0,
+            maxLng: -52.0
+        },
+        '94': { // Sudeste do estado
+            minLat: -8.0,
+            maxLat: -4.0,
+            minLng: -52.0,
+            maxLng: -48.0
+        }
+    };
+
     const cnsPorEstado = {
         'Amazonas': '92',
-        'Pará': '91',
+        'Pará': '91', // Será sobrescrito pela lógica regional
         'Roraima': '95',
         'Amapá': '96',
         'Rondônia': '69',
@@ -17547,6 +17569,33 @@ async function determinarCN(localidade) {
         const partes = localidade.split('/');
         if (partes.length > 1) {
             const estado = partes[1].trim();
+            const cidade = partes[0].trim();
+            
+            // Se for Pará, tentar obter as coordenadas da cidade
+            if (estado === 'Pará') {
+                try {
+                    // Usar a API do Nominatim para obter as coordenadas da cidade
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(cidade)},${estado},Brasil&limit=1`);
+                    const data = await response.json();
+                    
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        
+                        // Verificar em qual região as coordenadas se encaixam
+                        for (const [ddd, regiao] of Object.entries(regioesPara)) {
+                            if (lat >= regiao.minLat && lat <= regiao.maxLat &&
+                                lng >= regiao.minLng && lng <= regiao.maxLng) {
+                                return ddd;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Erro ao obter coordenadas da cidade:', error);
+                }
+                return '91'; // Se não conseguir determinar, retorna o DDD padrão de Belém
+            }
+            
             return cnsPorEstado[estado] || '91';
         }
 
@@ -17556,6 +17605,16 @@ async function determinarCN(localidade) {
         
         if (coords) {
             const localizacao = await identificarCidade(coords.lat, coords.lng);
+            if (localizacao.estado === 'Pará') {
+                // Verificar em qual região as coordenadas se encaixam
+                for (const [ddd, regiao] of Object.entries(regioesPara)) {
+                    if (coords.lat >= regiao.minLat && coords.lat <= regiao.maxLat &&
+                        coords.lng >= regiao.minLng && coords.lng <= regiao.maxLng) {
+                        return ddd;
+                    }
+                }
+                return '91'; // Se não encontrar a região, retorna o DDD padrão de Belém
+            }
             if (localizacao.estado) {
                 return cnsPorEstado[localizacao.estado] || '91';
             }
