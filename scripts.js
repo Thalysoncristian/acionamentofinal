@@ -1598,10 +1598,6 @@ const coordenadas = {
     "lng": -60.095639
     },
     "AMMNS37_001": {
-    "lat": -3.033367,
-    "lng": -60.08699
-    },
-    "AMMNS38": {
     "lat": -3.12833333333333,
     "lng": -59.9830555555556
     },
@@ -2398,10 +2394,6 @@ const coordenadas = {
     "lng": -60.0042
     },
     "AMMNSDC": {
-    "lat": -3.0649,
-    "lng": -59.9522
-    },
-    "AMMNSDD": {
     "lat": -3.108808812,
     "lng": -59.96753518
     },
@@ -4001,10 +3993,6 @@ const coordenadas = {
     "lat": -0.216389,
     "lng": -51.434167
     },
-    "APMAZ03": {
-    "lat": -0.11389,
-    "lng": -51.28608
-    },
     "APMPA01": {
     "lat": 0.072133,
     "lng": -51.049263
@@ -4798,10 +4786,6 @@ const coordenadas = {
     "lng": -59.979445
     },
     "EAM0015": {
-    "lat": -3.131779,
-    "lng": -60.024834
-    },
-    "EAM0016": {
     "lat": -3.074456,
     "lng": -59.956123
     },
@@ -6398,10 +6382,6 @@ const coordenadas = {
     "lng": -44.5642
     },
     "MABEQ01": {
-    "lat": -2.44845,
-    "lng": -44.78983
-    },
-    "MABEQ02": {
     "lat": -2.52353,
     "lng": -44.73803
     },
@@ -7998,10 +7978,6 @@ const coordenadas = {
     "lng": -44.182
     },
     "MAPDL14": {
-    "lat": -2.470741,
-    "lng": -44.119736
-    },
-    "MAPDL15": {
     "lat": -2.48384,
     "lng": -44.14073
     },
@@ -8798,10 +8774,6 @@ const coordenadas = {
     "lng": -44.298975
     },
     "MASLS27": {
-    "lat": -2.50904,
-    "lng": -44.286864
-    },
-    "MASLS28": {
     "lat": -2.51583333333333,
     "lng": -44.2588888888889
     },
@@ -9598,10 +9570,6 @@ const coordenadas = {
     "lng": -44.2923
     },
     "MASLSL5": {
-    "lat": -2.559,
-    "lng": -44.231
-    },
-    "MASLSL6": {
     "lat": -2.51,
     "lng": -44.234
     },
@@ -11198,10 +11166,6 @@ const coordenadas = {
     "lng": -52.5428
     },
     "PAAMM1L": {
-    "lat": -1.545056,
-    "lng": -52.767361
-    },
-    "PAAMM90": {
     "lat": -1.71389,
     "lng": -53.0799
     },
@@ -12798,10 +12762,6 @@ const coordenadas = {
     "lng": -48.4580730429908
     },
     "PABLMM9": {
-    "lat": -1.428347127846177,
-    "lng": -48.46128204166335
-    },
-    "PABLMN1": {
     "lat": -1.405343219509986,
     "lng": -48.48218349933545
     },
@@ -13598,10 +13558,6 @@ const coordenadas = {
     "lng": -49.488242
     },
     "PACME02": {
-    "lat": -2.245823,
-    "lng": -49.50032
-    },
-    "PACME03": {
     "lat": -2.39265,
     "lng": -49.549681
     },
@@ -14398,10 +14354,6 @@ const coordenadas = {
     "lng": -49.12787
     },
     "PAMBA10": {
-    "lat": -5.35728,
-    "lng": -49.08262
-    },
-    "PAMBA11": {
     "lat": -5.329444,
     "lng": -49.094831
     },
@@ -15198,10 +15150,6 @@ const coordenadas = {
     "lng": -47.35972
     },
     "PAPGN21": {
-    "lat": -2.979130149,
-    "lng": -47.33682664
-    },
-    "PAPGN22": {
     "lat": -2.993861,
     "lng": -47.342583
     },
@@ -15998,10 +15946,6 @@ const coordenadas = {
     "lng": -54.69067
     },
     "PASRM17": {
-    "lat": -2.457833,
-    "lng": -54.7175
-    },
-    "PASRM18": {
     "lat": -2.4706,
     "lng": -54.72569
     },
@@ -16140,14 +16084,6 @@ const coordenadas = {
     "PASRM52": {
     "lat": -2.416,
     "lng": -54.7117
-    },
-    "PASRMI5": {
-    "lat": -2.424214,
-    "lng": -54.786531
-    },
-    "PASTM01": {
-    "lat": -2.422161,
-    "lng": -54.718107
     },
     "PASTMX1": {
     "lat": -2.421099,
@@ -16798,10 +16734,6 @@ const coordenadas = {
     "lng": -60.7103
     },
     "RRBVA08_001": {
-    "lat": 2.79813,
-    "lng": -60.705793
-    },
-    "RRBVA09": {
     "lat": 2.771778,
     "lng": -60.725722
     },
@@ -17429,8 +17361,9 @@ const coordenadas = {
     "lat": 2.82308,
     "lng": -60.673442
     }
-
-};
+  
+  
+  };
 async function identificarCidade(lat, lng) {
     try {
         // Primeiro, usar LocationIQ para obter bairro e outros detalhes
@@ -17864,22 +17797,49 @@ async function preencherDados(value) {
     console.log('Site digitado:', siteDigitado); // Debug
     console.log('Coordenadas encontradas:', coords); // Debug
     
-    // Se não encontrou coordenadas OU se o site não está no select, permite edição do endereço e mostra o campo CN
-    if (!coords || !select.querySelector(`option[value*="${siteDigitado}"]`)) {
-        console.log('Site não encontrado no banco de dados, permitindo edição do endereço e CN'); // Debug
-        enderecoInput.readOnly = false;
-        enderecoInput.value = '';
-        ucInput.value = '';
-        ucInput.style.display = 'none';
-        ucLabel.style.display = 'none';
-        document.getElementById('localidade').value = '';
-        document.getElementById('rotasButton').style.display = 'none';
+    // Se não encontrou coordenadas, verifica se o site está no select
+    if (!coords) {
+        let found = false;
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value.includes(siteDigitado)) {
+                const dados = select.options[i].value.split('*');
+                ucInput.value = dados[1] || '';
+                enderecoInput.value = dados[2] || '';
+                document.getElementById('localidade').value = '';
+                
+                // Mostrar campos UC e endereço
+                ucInput.style.display = 'block';
+                ucLabel.style.display = 'block';
+                enderecoInput.readOnly = false;
+                
+                // Mostrar campo CN para preenchimento manual
+                cnInput.style.display = 'block';
+                cnLabel.style.display = 'block';
+                cnInput.readOnly = false;
+                cnInput.value = '';
+                
+                document.getElementById('rotasButton').style.display = 'none';
+                found = true;
+                break;
+            }
+        }
         
-        // Mostrar campo CN para preenchimento manual
-        cnInput.style.display = 'block';
-        cnLabel.style.display = 'block';
-        cnInput.readOnly = false;
-        cnInput.value = ''; // Limpar o valor do CN
+        if (!found) {
+            console.log('Site não encontrado no banco de dados'); // Debug
+            enderecoInput.readOnly = false;
+            enderecoInput.value = '';
+            ucInput.value = '';
+            ucInput.style.display = 'none';
+            ucLabel.style.display = 'none';
+            document.getElementById('localidade').value = '';
+            document.getElementById('rotasButton').style.display = 'none';
+            
+            // Mostrar campo CN para preenchimento manual
+            cnInput.style.display = 'block';
+            cnLabel.style.display = 'block';
+            cnInput.readOnly = false;
+            cnInput.value = '';
+        }
         return;
     }
     
@@ -17928,7 +17888,7 @@ async function preencherDados(value) {
                 cnInput.style.display = 'block';
                 cnLabel.style.display = 'block';
                 cnInput.readOnly = false;
-                cnInput.value = ''; // Limpar o valor do CN
+                cnInput.value = '';
             }
             
             found = true;
@@ -17951,7 +17911,7 @@ async function preencherDados(value) {
         cnInput.style.display = 'block';
         cnLabel.style.display = 'block';
         cnInput.readOnly = false;
-        cnInput.value = ''; // Limpar o valor do CN
+        cnInput.value = '';
     }
 }
 
