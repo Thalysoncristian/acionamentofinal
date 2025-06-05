@@ -17697,11 +17697,25 @@ async function gerarAcionamento() {
         const site = get('site-search') || getSelect('site');
         const localidade = get('localidade');
         const endereco = get('endereco');
-        const uc = get('uc');
         
+        // Verificar se o campo UC está visível e se tem valor
+        const ucInput = document.getElementById('uc');
+        const uc = (ucInput.style.display !== 'none' && ucInput.value.trim() !== '') ? get('uc') : '';
+
         // Se o campo CN estiver visível, usar o valor digitado, senão determinar automaticamente
         const cnInput = document.getElementById('cn');
         const cn = cnInput.style.display === 'block' ? get('cn') : await determinarCN(localidade);
+
+        // Verificar se o site está no select e se tem UC
+        const select = document.getElementById('site');
+        let temUC = false;
+        if (select) {
+            const selectedOption = select.options[select.selectedIndex];
+            if (selectedOption) {
+                const dados = selectedOption.value.split('*');
+                temUC = dados[1] && dados[1].trim() !== '';
+            }
+        }
 
         let informe = [
             '*INFORMATIVO DE ACIONAMENTO*',
@@ -17711,7 +17725,7 @@ async function gerarAcionamento() {
             `*ESTAÇÃO:* ${site}`,
             localidade ? `*LOCALIDADE:* ${localidade}` : '',
             endereco ? `*ENDEREÇO:* ${endereco}` : '',
-            uc ? `*UC:* ${uc}` : '',
+            temUC ? `*UC:* ${uc}` : '', // Só inclui UC se o site tiver UC
             `*ALARME:* ${getSelect('alarme')}`,
             `*AMI:* ${get('ami')}`,
             `*INC:* ${get('inc')}`,
@@ -17803,13 +17817,29 @@ async function preencherDados(value) {
         for (let i = 0; i < select.options.length; i++) {
             if (select.options[i].value.includes(siteDigitado)) {
                 const dados = select.options[i].value.split('*');
-                ucInput.value = dados[1] || '';
-                enderecoInput.value = dados[2] || '';
+                const siteText = select.options[i].text;
+                
+                // Verifica se o site tem UC (segundo elemento do array)
+                if (dados[1] && dados[1].trim() !== '') {
+                    ucInput.value = dados[1];
+                    ucInput.style.display = 'block';
+                    ucLabel.style.display = 'block';
+                } else {
+                    ucInput.value = '';
+                    ucInput.style.display = 'none';
+                    ucLabel.style.display = 'none';
+                }
+                
+                // Se o site não tem UC, o endereço está no próprio texto da opção
+                if (!dados[1] || dados[1].trim() === '') {
+                    enderecoInput.value = siteText.split('*')[1] || '';
+                } else {
+                    enderecoInput.value = dados[2] || '';
+                }
+                
                 document.getElementById('localidade').value = '';
                 
-                // Mostrar campos UC e endereço
-                ucInput.style.display = 'block';
-                ucLabel.style.display = 'block';
+                // Sempre permitir edição do endereço
                 enderecoInput.readOnly = false;
                 
                 // Mostrar campo CN para preenchimento manual
@@ -17848,7 +17878,18 @@ async function preencherDados(value) {
     for (let i = 0; i < select.options.length; i++) {
         if (select.options[i].value === value) {
             const dados = select.options[i].value.split('*');
-            ucInput.value = dados[1];
+            const siteText = select.options[i].text;
+            
+            // Verifica se o site tem UC (segundo elemento do array)
+            if (dados[1] && dados[1].trim() !== '') {
+                ucInput.value = dados[1];
+                ucInput.style.display = 'block';
+                ucLabel.style.display = 'block';
+            } else {
+                ucInput.value = '';
+                ucInput.style.display = 'none';
+                ucLabel.style.display = 'none';
+            }
             
             try {
                 console.log('Chamando identificarCidade com:', coords.lat, coords.lng); // Debug
@@ -17858,8 +17899,10 @@ async function preencherDados(value) {
                 // Preencher localidade e endereço (ocultos)
                 document.getElementById('localidade').value = localizacao.localidade;
                 
-                // Se o site estiver no banco, usar o endereço do banco, senão usar o da API
-                if (dados[2]) {
+                // Se o site não tem UC, o endereço está no próprio texto da opção
+                if (!dados[1] || dados[1].trim() === '') {
+                    enderecoInput.value = siteText.split('*')[1] || '';
+                } else if (dados[2]) {
                     enderecoInput.value = dados[2];
                     // Adicionar bairro se disponível e não estiver no endereço
                     if (localizacao.bairro && !enderecoInput.value.includes(localizacao.bairro)) {
@@ -17875,12 +17918,17 @@ async function preencherDados(value) {
                 
                 // Sempre permitir edição do endereço
                 enderecoInput.readOnly = false;
-                ucInput.style.display = 'block';
-                ucLabel.style.display = 'block';
             } catch (error) {
                 console.error('Erro ao identificar cidade:', error);
                 document.getElementById('localidade').value = '';
-                enderecoInput.value = dados[2] || '';
+                
+                // Se o site não tem UC, o endereço está no próprio texto da opção
+                if (!dados[1] || dados[1].trim() === '') {
+                    enderecoInput.value = siteText.split('*')[1] || '';
+                } else {
+                    enderecoInput.value = dados[2] || '';
+                }
+                
                 // Garantir que o endereço seja editável mesmo em caso de erro
                 enderecoInput.readOnly = false;
                 
