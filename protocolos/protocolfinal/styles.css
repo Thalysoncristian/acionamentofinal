@@ -1,0 +1,159 @@
+/* Estilos CSS */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0; 
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: var(--container-bg);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background-color: #206ab5;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+button:hover {
+    background-color: #4f81b2;
+}
+
+#resultado {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: var(--result-bg);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.checkbox-group {
+    margin-top: 20px;
+}
+
+:root {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --container-bg: #fff;
+    --result-bg: #f8f9fa;
+}
+
+body.dark {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --container-bg: #333;
+    --result-bg: #444;
+}
+
+button#theme-toggle {
+    margin-top: 10px;
+}
+
+.logo {
+    display: block;
+    margin: 0 auto 20px;
+    width: 200px;
+}
+
+.hidden {
+    display: none;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-content div {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content div:hover {
+    background-color: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+
+button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #07407e;
+    color: white;
+}
+
+button i {
+    margin-right: 8px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.install-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    margin: 5px;
+    font-size: 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+}
+
+.install-button:hover {
+    background-color: #0056b3;
+}
