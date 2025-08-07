@@ -401,3 +401,179 @@ input[type="number"] {
     color: #666;
     font-size: 0.9em;
 }
+
+/* Estilos para o sistema FCA */
+.fca-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: var(--container-bg);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.fca-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.fca-container label {
+    display: block;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+.fca-container input,
+.fca-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.fca-container textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.fca-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #206ab5;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+.fca-container button:hover {
+    background-color: #4f81b2;
+}
+
+.fca-container button:nth-child(2) {
+    background-color: #28a745;
+}
+
+.fca-container button:nth-child(2):hover {
+    background-color: #218838;
+}
+
+.fca-container button:nth-child(3) {
+    background-color: #dc3545;
+}
+
+.fca-container button:nth-child(3):hover {
+    background-color: #c82333;
+}
+
+.fca-container button:nth-child(4) {
+    background-color: #6c757d;
+}
+
+.fca-container button:nth-child(4):hover {
+    background-color: #5a6268;
+}
+
+#resultadoFCA {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: var(--result-bg);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-transform: uppercase;
+    white-space: pre-line;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Estilos para o sistema Protocolo */
+.protocolo-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: var(--container-bg);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.protocolo-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.protocolo-container label {
+    display: block;
+    margin-top: 10px;
+    text-transform: uppercase;
+}
+
+.protocolo-container input,
+.protocolo-container select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.protocolo-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #206ab5;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+    text-transform: uppercase;
+}
+
+.protocolo-container button:hover {
+    background-color: #4f81b2;
+}
+
+.protocolo-container button:nth-child(2) {
+    background-color: #28a745;
+}
+
+.protocolo-container button:nth-child(2):hover {
+    background-color: #218838;
+}
+
+.protocolo-container button:nth-child(3) {
+    background-color: #dc3545;
+}
+
+.protocolo-container button:nth-child(3):hover {
+    background-color: #c82333;
+}
+
+.protocolo-container button:nth-child(4) {
+    background-color: #6c757d;
+}
+
+.protocolo-container button:nth-child(4):hover {
+    background-color: #5a6268;
+}
+
+#resultadoProtocolo {
+    margin-top: 20px;
+    padding: 10px;
+    background-color: var(--result-bg);
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-transform: uppercase;
+    white-space: pre-line;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+

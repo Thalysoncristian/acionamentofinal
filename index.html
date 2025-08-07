@@ -6102,9 +6102,90 @@
             <button type=button onclick=toggleUtilitarioDistancia()>
                 <i class="fa fa-calculator"></i> Calcular Distância
             </button>
+            <button type=button onclick=toggleFCA()>
+                <i class="fa fa-file-text"></i> FCA
+            </button>
+            <button type=button onclick=toggleProtocolo()>
+                <i class="fa fa-clipboard"></i> Protocolo
+            </button>
         </form>
         
         <div class=result id=resultado></div>
+        
+        <!-- Sistema FCA (inicialmente oculto) -->
+        <div class="fca-container" style="display: none;">
+            <h2>Informe de FCA STTE</h2>
+            <form id="fcaForm">
+                <label for="noc">NOC:</label>
+                <input id="noc" placeholder="Digite o nome do NOC" value="THALYSON SILVA">
+                
+                <label for="dataHoraFCA">DATA E HORA:</label>
+                <input type="datetime-local" id="dataHoraFCA">
+                
+                <label for="fator">FATOR:</label>
+                <input id="fator" placeholder="Ex: ENERGIA">
+                
+                <label for="causa">CAUSA:</label>
+                <input id="causa" placeholder="Ex: FALHA DE ENERGIA">
+                
+                <label for="acao">AÇÃO:</label>
+                <textarea id="acao" placeholder="Ex: GMG ATUOU ATÉ A NORMALIZAÇÃO DA ENERGIA PELA CONCESSIONARIA" rows="3"></textarea>
+                
+                <button type="button" onclick="gerarFCA()">
+                    <i class="fa fa-file-text"></i> Gerar FCA
+                </button>
+                <button type="button" onclick="copiarFCA()">
+                    <i class="fa fa-copy"></i> Copiar FCA
+                </button>
+                <button type="button" onclick="limparFCA()">
+                    <i class="fa fa-eraser"></i> Limpar
+                </button>
+                <button type="button" onclick="voltarAcionamento()">
+                    <i class="fa fa-arrow-left"></i> Voltar ao Acionamento
+                </button>
+            </form>
+            <div class="result" id="resultadoFCA"></div>
+        </div>
+        
+        <!-- Sistema Protocolo (inicialmente oculto) -->
+        <div class="protocolo-container" style="display: none;">
+            <h2>Informativo de Protocolo</h2>
+            <form id="protocoloForm">
+                <label for="site-protocolo">SITE:</label>
+                <input type="text" id="site-protocolo" placeholder="Digite para buscar...">
+                <div id="dropdown-protocolo" class="dropdown-content"></div>
+        
+                <select id="site-select-protocolo" class="hidden" onchange="preencherDadosProtocolo()">
+                    <!-- Opções serão preenchidas dinamicamente -->
+                </select>
+                
+                <label for="uc-protocolo">UC:</label>
+                <input type="text" id="uc-protocolo" readonly>
+                    
+                <label for="endereco-protocolo">ENDEREÇO:</label>
+                <input type="text" id="endereco-protocolo" readonly>
+
+                <label for="protocolo-numero">PROTOCOLO:</label>
+                <input type="text" id="protocolo-numero" placeholder="DIGITE O PROTOCOLO">
+
+                <label for="atendente-protocolo">ATENDENTE:</label>
+                <input type="text" id="atendente-protocolo" placeholder="DIGITE O ATENDENTE">
+
+                <button type="button" onclick="gerarProtocolo()">
+                    <i class="fa fa-cogs"></i> Gerar Protocolo
+                </button>
+                <button type="button" onclick="copiarProtocolo()">
+                    <i class="fa fa-copy"></i> Copiar Protocolo
+                </button>
+                <button type="button" onclick="limparProtocolo()">
+                    <i class="fa fa-eraser"></i> Limpar
+                </button>
+                <button type="button" onclick="voltarAcionamentoProtocolo()">
+                    <i class="fa fa-arrow-left"></i> Voltar ao Acionamento
+                </button>
+            </form>
+            <div class="result" id="resultadoProtocolo"></div>
+        </div>
         
         <!-- Utilitário de Distância (inicialmente oculto) -->
         <div class="utilitario-distancia" style="display: none;">
@@ -6131,6 +6212,8 @@
     </div>
     
     <script src=scripts.js></script>
+    <script src=fca.js></script>
+    <script src=protocolo.js></script>
     
     <footer class="footer">
         <div class="footer-content">
