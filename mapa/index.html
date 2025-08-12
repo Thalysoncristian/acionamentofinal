@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interativo - Sites STTE</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="container-fluid">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h1><i class="fas fa-map-marked-alt"></i> Mapa Interativo STTE</h1>
+                        <p class="subtitle">Visualização e Seleção de Sites</p>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="header-controls">
+                            <button id="clearAllBtn" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Limpar Todos
+                            </button>
+                            <button id="selectAllBtn" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-check-double"></i> Selecionar Todos
+                            </button>
+                            <button id="autoNavigateBtn" class="btn btn-outline-success btn-sm" title="Navegação Automática">
+                                <i class="fas fa-crosshairs"></i> Auto Navegar
+                            </button>
+                            <button id="toggleSidebarBtn" class="btn btn-outline-secondary btn-sm d-md-none">
+                                <i class="fas fa-bars"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <div id="sidebar" class="sidebar">
+                <div class="sidebar-header">
+                    <h5><i class="fas fa-list"></i> Sites Disponíveis</h5>
+                    <span id="selectedCount" class="badge bg-primary">0 selecionados</span>
+                </div>
+
+                <!-- Search Box -->
+                <div class="search-container">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="siteSearch" class="form-control" placeholder="Buscar site...">
+                        <button id="clearSearchBtn" class="btn btn-outline-secondary" type="button">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sites List -->
+                <div class="sites-container">
+                    <div id="sitesList" class="sites-list">
+                        <!-- Sites serão carregados dinamicamente -->
+                    </div>
+                </div>
+
+                <!-- Footer Info -->
+                <div class="sidebar-footer">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span id="totalSites">0</span> sites
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-eye"></i>
+                        <span id="visibleSites">0</span> visíveis
+                    </div>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div id="mapContainer" class="map-container">
+                <div id="map"></div>
+                
+                <!-- Map Controls -->
+                <div class="map-controls">
+                    <div class="control-group">
+                        <button id="centerMapBtn" class="btn btn-light btn-sm" title="Centralizar Mapa">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                        <button id="fitBoundsBtn" class="btn btn-light btn-sm" title="Ajustar aos Sites Selecionados">
+                            <i class="fas fa-expand-arrows-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Distance Calculator -->
+                <div id="distancePanel" class="distance-panel" style="display: none;">
+                    <div class="panel-header">
+                        <h6><i class="fas fa-calculator"></i> Calculadora de Distância</h6>
+                        <button id="closeDistancePanel" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="panel-content">
+                        <div class="form-group">
+                            <label>Ponto de Origem:</label>
+                            <select id="originSelect" class="form-select form-select-sm">
+                                <option value="">Selecione origem...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Destinos Selecionados:</label>
+                            <div id="destinationsList" class="destinations-list">
+                                <!-- Destinos serão listados aqui -->
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <button id="clearRoutesBtn" class="btn btn-outline-danger btn-sm" onclick="map.clearRoutes()">
+                                <i class="fas fa-trash"></i> Limpar Rotas
+                            </button>
+                        </div>
+                        <div id="distanceResults" class="distance-results">
+                            <!-- Resultados serão exibidos aqui -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+            </div>
+            <p>Carregando mapa e sites...</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../coordenadas.js"></script>
+    <script src="map.js"></script>
+</body>
+</html> 

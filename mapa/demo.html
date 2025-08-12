@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo - Mapa Interativo STTE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #07407e 0%, #206ab5 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .demo-card {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin: 20px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #2196f3;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 18px;
+            margin: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        .feature h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗺️ Mapa Interativo STTE</h1>
+        <p>Demonstração do sistema de visualização geográfica de sites</p>
+        
+        <div class="demo-card">
+            <h2>🚀 Funcionalidades Principais</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>📍 Visualização Completa</h3>
+                    <p>Veja todos os sites da STTE em um mapa interativo com marcadores personalizados</p>
+                </div>
+                <div class="feature">
+                    <h3>🔍 Busca Inteligente</h3>
+                    <p>Encontre sites rapidamente usando busca por código ou coordenadas</p>
+                </div>
+                <div class="feature">
+                    <h3>📏 Calculadora de Distâncias</h3>
+                    <p>Calcule distâncias entre sites para otimizar rotas de técnicos</p>
+                </div>
+                <div class="feature">
+                    <h3>📱 Interface Responsiva</h3>
+                    <p>Funciona perfeitamente em desktop, tablet e mobile</p>
+                </div>
+            </div>
+            
+            <a href="index.html" class="btn">🎯 Abrir Mapa Interativo</a>
+            <a href="../index.html" class="btn">🏠 Voltar ao Sistema Principal</a>
+        </div>
+        
+        <div class="demo-card">
+            <h2>📊 Estatísticas</h2>
+            <p><strong>Sites Cadastrados:</strong> <span id="siteCount">Carregando...</span></p>
+            <p><strong>Regiões Cobertas:</strong> Norte do Brasil (AM, PA, etc.)</p>
+            <p><strong>Tecnologia:</strong> Leaflet.js + OpenStreetMap</p>
+        </div>
+    </div>
+
+    <script>
+        // Carregar contagem de sites
+        fetch('../coordenadas.js')
+            .then(response => response.text())
+            .then(text => {
+                // Extrair número de sites do arquivo
+                const matches = text.match(/"([^"]+)":\s*{/g);
+                if (matches) {
+                    document.getElementById('siteCount').textContent = matches.length;
+                }
+            })
+            .catch(() => {
+                document.getElementById('siteCount').textContent = '17.000+';
+            });
+    </script>
+</body>
+</html> 

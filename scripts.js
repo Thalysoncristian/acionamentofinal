@@ -894,6 +894,11 @@ function abrirRotaNoMaps(siteOrigem, siteDestino) {
     }
 }
 
+// Função para abrir o mapa interativo
+function abrirMapa() {
+    window.open('mapa/index.html', '_blank');
+}
+
 // Adicionar autocomplete para os campos de site
 document.addEventListener('DOMContentLoaded', function() {
     // Configurar autocomplete para site de origem
