@@ -7,53 +7,7 @@
         const atendente = document.getElementById("atendente").value.toUpperCase() || "";
         const horaData = new Date().toLocaleString('pt-BR');
         
-        const coordenadas = {
-            "AM0001F": {
-                "lat": -3.08483,
-                "lng": -60.072408
-            },
-            "AM0001R": {
-                "lat": -3.102108,
-                "lng": -59.943767
-            },
-            "PABLM50": {
-                "lat": -1.351389,
-                "lng": -48.433611
-            },
-            "RRSZW90": {
-                "lat": 1.18219,
-                "lng": -60.1909
-            },
-            "RRTIM01": {
-                "lat": -1.411111,
-                "lng": -60.673028
-            }, 
-            "RRURM01": {
-                "lat": 4.595861,
-                "lng": -60.164167
-            },
-            "RRURM02": {
-                "lat": 4.415824,
-                "lng": -60.078167
-            },
-            "RRURM03": {
-                "lat": 4.737228,
-                "lng": -60.361333
-            },
-            "RRVIV01": {
-                "lat": 2.828334,
-                "lng": -60.676342
-            },
-            "RRVIV02": {
-                "lat": 2.828611,
-                "lng": -60.675833
-            },
-            "RRVIV03": {
-                "lat": 2.82308,
-                "lng": -60.673442
-            }
-        };
-        
+        // Usar coordenadas do arquivo centralizado
         const coords = coordenadas[site];
         let cidadeTexto = "";
         if (coords) {
