@@ -12,9 +12,14 @@ function toggleFCA() {
         mainResult.style.display = 'none';
         utilitarioDistancia.style.display = 'none';
         
-        // Definir data e hora atual
+        // Sempre definir data e hora atual quando abrir o FCA
         const agora = new Date();
-        const dataHoraString = agora.toISOString().slice(0, 16);
+        const ano = agora.getFullYear();
+        const mes = String(agora.getMonth() + 1).padStart(2, '0');
+        const dia = String(agora.getDate()).padStart(2, '0');
+        const hora = String(agora.getHours()).padStart(2, '0');
+        const minuto = String(agora.getMinutes()).padStart(2, '0');
+        const dataHoraString = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
         document.getElementById('dataHoraFCA').value = dataHoraString;
         
         // Limpar resultado anterior
@@ -28,11 +33,11 @@ function toggleFCA() {
 }
 
 function gerarFCA() {
-    const noc = document.getElementById('noc').value.toUpperCase() || 'THALYSON SILVA';
+    const noc = document.getElementById('noc').value.toUpperCase() || '';
     const dataHoraInput = document.getElementById('dataHoraFCA').value;
-    const fator = document.getElementById('fator').value.toUpperCase() || 'ENERGIA';
-    const causa = document.getElementById('causa').value.toUpperCase() || 'FALHA DE ENERGIA';
-    const acao = document.getElementById('acao').value.toUpperCase() || 'GMG ATUOU ATÉ A NORMALIZAÇÃO DA ENERGIA PELA CONCESSIONARIA';
+    const fator = document.getElementById('fator').value.toUpperCase() || '';
+    const causa = document.getElementById('causa').value.toUpperCase() || '';
+    const acao = document.getElementById('acao').value.toUpperCase() || '';
     
     // Formatar data e hora
     let dataHoraFormatada = '';
@@ -87,16 +92,20 @@ function copiarFCA() {
 }
 
 function limparFCA() {
-    document.getElementById('noc').value = 'THALYSON SILVA';
-    document.getElementById('dataHoraFCA').value = '';
+    document.getElementById('noc').value = '';
     document.getElementById('fator').value = '';
     document.getElementById('causa').value = '';
     document.getElementById('acao').value = '';
     document.getElementById('resultadoFCA').innerText = '';
     
-    // Definir data e hora atual
+    // Sempre definir data e hora atual quando limpar
     const agora = new Date();
-    const dataHoraString = agora.toISOString().slice(0, 16);
+    const ano = agora.getFullYear();
+    const mes = String(agora.getMonth() + 1).padStart(2, '0');
+    const dia = String(agora.getDate()).padStart(2, '0');
+    const hora = String(agora.getHours()).padStart(2, '0');
+    const minuto = String(agora.getMinutes()).padStart(2, '0');
+    const dataHoraString = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
     document.getElementById('dataHoraFCA').value = dataHoraString;
 }
 
