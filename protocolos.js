@@ -18,13 +18,61 @@
         let resultado = `INFORMATIVO DE PROTOCOLO\nSITE: ${site}\nUC: ${uc}\nENDEREÇO: ${endereco}${cidadeTexto}\nPROTOCOLO: ${protocolo}\nATENDENTE: ${atendente}\nHORA E DATA: ${horaData}`;
 
         document.getElementById("resultado").innerText = resultado.trim();
+        
+        // Animação de sucesso no botão gerar
+        const botaoGerar = document.querySelector('button[onclick="gerarAcionamento()"]');
+        if (botaoGerar) {
+            botaoGerar.classList.add('botao-sucesso');
+            botaoGerar.innerHTML = '<i class="fa fa-check"></i> Gerado!';
+            
+            setTimeout(() => {
+                botaoGerar.classList.remove('botao-sucesso');
+                botaoGerar.innerHTML = '<i class="fa fa-cogs"></i> Gerar';
+            }, 2000);
+        }
     }
 
     // Função para copiar o acionamento gerado
     function copiarAcionamento() {
         const resultado = document.getElementById("resultado").innerText;
-        navigator.clipboard.writeText(resultado);
-        alert("Acionamento copiado para a área de transferência!");
+        const botaoCopiar = document.querySelector('button[onclick="copiarAcionamento()"]');
+        
+        if (!resultado.trim()) {
+            // Animação de erro se não houver relatório
+            botaoCopiar.classList.add('botao-erro');
+            botaoCopiar.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Gere um relatório!';
+            
+            setTimeout(() => {
+                botaoCopiar.classList.remove('botao-erro');
+                botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar';
+            }, 2000);
+            return;
+        }
+        
+        // Adicionar classe de animação
+        botaoCopiar.classList.add('botao-sucesso');
+        botaoCopiar.innerHTML = '<i class="fa fa-check"></i> Copiado!';
+        
+        navigator.clipboard.writeText(resultado)
+            .then(() => {
+                // Remover animação após 2 segundos
+                setTimeout(() => {
+                    botaoCopiar.classList.remove('botao-sucesso');
+                    botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar';
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Erro ao copiar:', err);
+                // Animação de erro
+                botaoCopiar.classList.remove('botao-sucesso');
+                botaoCopiar.classList.add('botao-erro');
+                botaoCopiar.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Erro!';
+                
+                setTimeout(() => {
+                    botaoCopiar.classList.remove('botao-erro');
+                    botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar';
+                }, 2000);
+            });
     }
 
     // Função para buscar site e filtrar opções

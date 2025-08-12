@@ -108,17 +108,37 @@ function gerarProtocolo() {
     const protocolo = document.getElementById('protocolo-numero').value.toUpperCase() || "";
     const atendente = document.getElementById('atendente-protocolo').value.toUpperCase() || "";
     const horaData = new Date().toLocaleString('pt-BR');
+    const botaoGerar = document.querySelector('button[onclick="gerarProtocolo()"]');
 
     let resultado = `INFORMATIVO DE PROTOCOLO\nSITE: ${site}\nUC: ${uc}\nENDEREÇO: ${endereco}\nPROTOCOLO: ${protocolo}\nATENDENTE: ${atendente}\nHORA E DATA: ${horaData}`;
 
     document.getElementById('resultadoProtocolo').innerText = resultado.trim();
+    
+    // Animação de sucesso
+    botaoGerar.classList.add('botao-sucesso');
+    botaoGerar.innerHTML = '<i class="fa fa-check"></i> Protocolo Gerado!';
+    
+    setTimeout(() => {
+        botaoGerar.classList.remove('botao-sucesso');
+        botaoGerar.innerHTML = '<i class="fa fa-cogs"></i> Gerar Protocolo';
+    }, 2000);
 }
 
 function copiarProtocolo() {
     const resultado = document.getElementById('resultadoProtocolo').innerText;
+    const botaoCopiar = document.querySelector('button[onclick="copiarProtocolo()"]');
+    
     if (resultado.trim()) {
+        // Adicionar classe de animação
+        botaoCopiar.classList.add('botao-sucesso');
+        botaoCopiar.innerHTML = '<i class="fa fa-check"></i> Copiado!';
+        
         navigator.clipboard.writeText(resultado).then(() => {
-            alert('Protocolo copiado para a área de transferência!');
+            // Remover animação após 2 segundos
+            setTimeout(() => {
+                botaoCopiar.classList.remove('botao-sucesso');
+                botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar Protocolo';
+            }, 2000);
         }).catch(() => {
             // Fallback para navegadores mais antigos
             const textArea = document.createElement('textarea');
@@ -127,14 +147,28 @@ function copiarProtocolo() {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            alert('Protocolo copiado para a área de transferência!');
+            
+            // Remover animação após 2 segundos
+            setTimeout(() => {
+                botaoCopiar.classList.remove('botao-sucesso');
+                botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar Protocolo';
+            }, 2000);
         });
     } else {
-        alert('Gere um protocolo primeiro!');
+        // Animação de erro se não houver protocolo
+        botaoCopiar.classList.add('botao-erro');
+        botaoCopiar.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Gere um protocolo!';
+        
+        setTimeout(() => {
+            botaoCopiar.classList.remove('botao-erro');
+            botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar Protocolo';
+        }, 2000);
     }
 }
 
 function limparProtocolo() {
+    const botaoLimpar = document.querySelector('button[onclick="limparProtocolo()"]');
+    
     document.getElementById('site-protocolo').value = '';
     document.getElementById('uc-protocolo').value = '';
     document.getElementById('endereco-protocolo').value = '';
@@ -142,6 +176,15 @@ function limparProtocolo() {
     document.getElementById('atendente-protocolo').value = '';
     document.getElementById('resultadoProtocolo').innerText = '';
     document.getElementById('site-select-protocolo').selectedIndex = 0;
+    
+    // Animação de limpeza
+    botaoLimpar.classList.add('botao-info');
+    botaoLimpar.innerHTML = '<i class="fa fa-check"></i> Limpo!';
+    
+    setTimeout(() => {
+        botaoLimpar.classList.remove('botao-info');
+        botaoLimpar.innerHTML = '<i class="fa fa-eraser"></i> Limpar';
+    }, 2000);
 }
 
 function voltarAcionamentoProtocolo() {

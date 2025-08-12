@@ -402,6 +402,133 @@ input[type="number"] {
     font-size: 0.9em;
 }
 
+/* Estilos para animações dos botões principais */
+button {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animação de sucesso (verde) */
+button.botao-sucesso {
+    background-color: #28a745 !important;
+    color: white !important;
+    animation: pulse 0.6s ease-in-out;
+}
+
+/* Animação de erro (vermelho) */
+button.botao-erro {
+    background-color: #dc3545 !important;
+    color: white !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Animação de informação (azul) */
+button.botao-info {
+    background-color: #17a2b8 !important;
+    color: white !important;
+    animation: bounce 0.6s ease-in-out;
+}
+
+/* Efeito de brilho nos botões */
+button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+button:hover::before {
+    left: 100%;
+}
+
+/* Estilos para animações dos botões FCA */
+.fca-container button {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.fca-container button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.fca-container button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Animação de sucesso (verde) */
+.fca-container button.botao-sucesso {
+    background-color: #28a745 !important;
+    color: white !important;
+    animation: pulse 0.6s ease-in-out;
+}
+
+/* Animação de erro (vermelho) */
+.fca-container button.botao-erro {
+    background-color: #dc3545 !important;
+    color: white !important;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Animação de informação (azul) */
+.fca-container button.botao-info {
+    background-color: #17a2b8 !important;
+    color: white !important;
+    animation: bounce 0.6s ease-in-out;
+}
+
+/* Keyframes para animações */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-10px); }
+    60% { transform: translateY(-5px); }
+}
+
+/* Efeito de brilho nos botões */
+.fca-container button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.fca-container button:hover::before {
+    left: 100%;
+}
+
 /* Estilos para o sistema FCA */
 .fca-container {
     max-width: 600px;

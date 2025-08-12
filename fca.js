@@ -38,6 +38,7 @@ function gerarFCA() {
     const fator = document.getElementById('fator').value.toUpperCase() || '';
     const causa = document.getElementById('causa').value.toUpperCase() || '';
     const acao = document.getElementById('acao').value.toUpperCase() || '';
+    const botaoGerar = document.querySelector('button[onclick="gerarFCA()"]');
     
     // Formatar data e hora
     let dataHoraFormatada = '';
@@ -69,13 +70,32 @@ CAUSA: ${causa}
 AÇÃO: ${acao}`;
     
     document.getElementById('resultadoFCA').innerText = fca;
+    
+    // Animação de sucesso
+    botaoGerar.classList.add('botao-sucesso');
+    botaoGerar.innerHTML = '<i class="fa fa-check"></i> FCA Gerado!';
+    
+    setTimeout(() => {
+        botaoGerar.classList.remove('botao-sucesso');
+        botaoGerar.innerHTML = '<i class="fa fa-file-text"></i> Gerar FCA';
+    }, 2000);
 }
 
 function copiarFCA() {
     const resultado = document.getElementById('resultadoFCA').innerText;
+    const botaoCopiar = document.querySelector('button[onclick="copiarFCA()"]');
+    
     if (resultado.trim()) {
+        // Adicionar classe de animação
+        botaoCopiar.classList.add('botao-sucesso');
+        botaoCopiar.innerHTML = '<i class="fa fa-check"></i> Copiado!';
+        
         navigator.clipboard.writeText(resultado).then(() => {
-            alert('FCA copiado para a área de transferência!');
+            // Remover animação após 2 segundos
+            setTimeout(() => {
+                botaoCopiar.classList.remove('botao-sucesso');
+                botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar FCA';
+            }, 2000);
         }).catch(() => {
             // Fallback para navegadores mais antigos
             const textArea = document.createElement('textarea');
@@ -84,14 +104,28 @@ function copiarFCA() {
             textArea.select();
             document.execCommand('copy');
             document.body.removeChild(textArea);
-            alert('FCA copiado para a área de transferência!');
+            
+            // Remover animação após 2 segundos
+            setTimeout(() => {
+                botaoCopiar.classList.remove('botao-sucesso');
+                botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar FCA';
+            }, 2000);
         });
     } else {
-        alert('Gere um FCA primeiro!');
+        // Animação de erro se não houver FCA
+        botaoCopiar.classList.add('botao-erro');
+        botaoCopiar.innerHTML = '<i class="fa fa-exclamation-triangle"></i> Gere um FCA!';
+        
+        setTimeout(() => {
+            botaoCopiar.classList.remove('botao-erro');
+            botaoCopiar.innerHTML = '<i class="fa fa-copy"></i> Copiar FCA';
+        }, 2000);
     }
 }
 
 function limparFCA() {
+    const botaoLimpar = document.querySelector('button[onclick="limparFCA()"]');
+    
     document.getElementById('noc').value = '';
     document.getElementById('fator').value = '';
     document.getElementById('causa').value = '';
@@ -107,6 +141,15 @@ function limparFCA() {
     const minuto = String(agora.getMinutes()).padStart(2, '0');
     const dataHoraString = `${ano}-${mes}-${dia}T${hora}:${minuto}`;
     document.getElementById('dataHoraFCA').value = dataHoraString;
+    
+    // Animação de limpeza
+    botaoLimpar.classList.add('botao-info');
+    botaoLimpar.innerHTML = '<i class="fa fa-check"></i> Limpo!';
+    
+    setTimeout(() => {
+        botaoLimpar.classList.remove('botao-info');
+        botaoLimpar.innerHTML = '<i class="fa fa-eraser"></i> Limpar';
+    }, 2000);
 }
 
 function voltarAcionamento() {
