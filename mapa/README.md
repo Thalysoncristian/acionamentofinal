@@ -32,13 +32,16 @@ Mapa interativo desenvolvido para visualização e seleção de sites da STTE, p
 - **Duplo Clique**: Navegue diretamente para um site (independente da seleção)
 
 ### 📏 Calculadora de Distâncias
-- **Origem Flexível**: Escolha qualquer site como ponto de partida
+- **Origem automática**: Primeiro site selecionado vira origem por padrão
+- **Cálculo instantâneo**: Botão para calcular distâncias imediatamente
+- **Interface limpa**: Sem mensagens desnecessárias
 - **Múltiplos Destinos**: Calcule distâncias para vários sites simultaneamente
 - **Rotas Reais**: Cálculo de distâncias por estradas (não linha reta)
 - **Visualização de Rotas**: Rotas desenhadas no mapa com cores diferentes
 - **Tempo Estimado**: Duração estimada da viagem para cada destino
 - **Setas de Direção**: Indicadores visuais da direção da rota
 - **Visualização Automática**: Rotas sempre visíveis quando calculadas
+- **Remoção Individual**: Botão X para remover rotas específicas
 - **Ordenação por Proximidade**: Resultados organizados por distância real
 
 ## 🚀 Como Usar
@@ -69,7 +72,7 @@ Abra o arquivo: mapa/index.html
 3. **Escolha Origem**: Selecione o site de origem no dropdown
 4. **Veja Resultados**: Distâncias por rota real ordenadas por proximidade
 5. **Visualize Rotas**: Rotas aparecem automaticamente no mapa com cores diferentes
-6. **Limpe Rotas**: Use "Limpar Rotas" para remover todas as rotas do mapa
+6. **Remova Rotas**: Use o botão X para remover rotas específicas
 
 ### 5. Controles do Mapa
 - **Centralizar**: Botão com ícone de mira

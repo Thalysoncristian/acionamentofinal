@@ -298,6 +298,41 @@ body {
     margin-bottom: 0;
 }
 
+.distance-result-item .btn {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+}
+
+.distance-result-item .btn:hover {
+    transform: scale(1.1);
+}
+
+/* Botão para remover rota */
+.btn-remove-route {
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-remove-route:hover {
+    background: #c82333;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+}
+
+.btn-remove-route:active {
+    transform: scale(0.95);
+}
 
 
 /* Loading Overlay */

@@ -370,6 +370,19 @@ class InteractiveMap {
             originSelect.appendChild(option);
         });
 
+        // Se não foi especificada uma origem, tentar usar o primeiro site selecionado
+        if (!originSite && this.selectedSites.size > 0) {
+            const firstSelectedSite = Array.from(this.selectedSites)[0];
+            originSelect.value = firstSelectedSite;
+            
+            // Calcular distâncias automaticamente se houver origem e destinos
+            if (this.selectedSites.size > 1) {
+                setTimeout(() => {
+                    this.calculateDistances();
+                }, 100);
+            }
+        }
+
         this.updateDestinationsList();
         panel.style.display = 'block';
     }
@@ -395,6 +408,7 @@ class InteractiveMap {
             return;
         }
 
+        // Mostrar todos os sites selecionados como destinos potenciais
         Array.from(this.selectedSites).forEach(siteName => {
             const site = this.allSites.find(s => s.name === siteName);
             const item = document.createElement('div');
@@ -405,20 +419,40 @@ class InteractiveMap {
             `;
             destinationsList.appendChild(item);
         });
+
+        // Se houver sites suficientes, mostrar botão para calcular automaticamente
+        if (this.selectedSites.size >= 2) {
+            const autoCalcBtn = document.createElement('button');
+            autoCalcBtn.className = 'btn btn-primary btn-sm mt-2';
+            autoCalcBtn.innerHTML = '<i class="fas fa-calculator"></i> Calcular Distâncias';
+            autoCalcBtn.onclick = () => {
+                // Usar o primeiro site selecionado como origem
+                const firstSite = Array.from(this.selectedSites)[0];
+                document.getElementById('originSelect').value = firstSite;
+                this.calculateDistances();
+            };
+            destinationsList.appendChild(autoCalcBtn);
+        }
     }
 
     async calculateDistances() {
         const originSite = document.getElementById('originSelect').value;
         const resultsDiv = document.getElementById('distanceResults');
 
-        if (!originSite || this.selectedSites.size === 0) {
-            resultsDiv.innerHTML = '<p class="text-muted">Selecione uma origem e pelo menos um destino</p>';
-            return;
+        if (!originSite) {
+            return; // Silenciosamente retorna se não há origem
         }
 
-        const origin = this.allSites.find(s => s.name === originSite);
-        const results = [];
-        
+        if (this.selectedSites.size < 2) {
+            return; // Silenciosamente retorna se não há sites suficientes
+        }
+
+        // Verificar se há destinos válidos (excluindo a origem)
+        const validDestinations = Array.from(this.selectedSites).filter(siteName => siteName !== originSite);
+        if (validDestinations.length === 0) {
+            return; // Silenciosamente retorna se não há destinos válidos
+        }
+
         // Mostrar loading
         resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Calculando rotas...</div>';
 
@@ -426,10 +460,9 @@ class InteractiveMap {
         this.clearRoutes();
 
         try {
-            // Calcular rotas para todos os destinos
-            const routePromises = Array.from(this.selectedSites).map(async destSiteName => {
-                if (destSiteName === originSite) return null;
-
+            // Calcular rotas para todos os destinos válidos
+            const routePromises = validDestinations.map(async destSiteName => {
+                const origin = this.allSites.find(s => s.name === originSite);
                 const dest = this.allSites.find(s => s.name === destSiteName);
                 
                 // Calcular distância em linha reta primeiro
@@ -471,16 +504,21 @@ class InteractiveMap {
             validResults.sort((a, b) => a.routeDistance - b.routeDistance);
 
             // Exibir resultados
-            let html = '<h6>Distâncias por Rota (ordenadas por proximidade):</h6>';
+            let html = `<h6>Distâncias de ${originSite} para os destinos (ordenadas por proximidade):</h6>`;
             validResults.forEach((result, index) => {
                 const routeColor = this.getRouteColor(index);
                 const routeId = `route-${result.destination}`;
                 
                 html += `
                     <div class="distance-result-item">
-                        <div>
-                            <strong>${result.destination}</strong><br>
-                            <small>${result.coordinates}</small>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>${result.destination}</strong><br>
+                                <small>${result.coordinates}</small>
+                            </div>
+                            <button class="btn-remove-route" onclick="map.removeRoute('${routeId}')" title="Remover rota">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
                         <div class="mt-2">
                             ${result.hasRoute ? 
@@ -634,6 +672,31 @@ class InteractiveMap {
         }
     }
 
+    // Função para remover rota específica
+    removeRoute(routeId) {
+        const routeData = this.routes.get(routeId);
+        if (routeData) {
+            // Remover rota do mapa
+            if (this.map.hasLayer(routeData.route)) {
+                this.map.removeLayer(routeData.route);
+            }
+            if (this.map.hasLayer(routeData.arrows)) {
+                this.map.removeLayer(routeData.arrows);
+            }
+            
+            // Remover da lista de rotas
+            this.routes.delete(routeId);
+            
+            // Remover o item da lista de resultados
+            const resultItem = document.querySelector(`[onclick="map.removeRoute('${routeId}')"]`).closest('.distance-result-item');
+            if (resultItem) {
+                resultItem.remove();
+            }
+            
+            // Atualizar contadores se necessário
+            this.updateCounters();
+        }
+    }
 
 
     // Função para limpar todas as rotas
