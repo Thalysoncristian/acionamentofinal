@@ -4,57 +4,22 @@
     <meta charset=UTF-8>
     <meta name=viewport content="width=device-width,initial-scale=1">
     <title>Informativo de Acionamento</title>
-    
-    <!-- Resource Hints -->
-    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="dns-prefetch" href="//stackpath.bootstrapcdn.com">
-    <link rel="preconnect" href="https://stackpath.bootstrapcdn.com" crossorigin>
-    <link rel="dns-prefetch" href="//unpkg.com">
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-    <link rel="dns-prefetch" href="//gms.stte.com.br">
-    <link rel="preconnect" href="https://gms.stte.com.br" crossorigin>
-    <link rel="dns-prefetch" href="//stte.com.br">
-    <link rel="preconnect" href="https://stte.com.br" crossorigin>
-    <link rel="dns-prefetch" href="//us1.locationiq.com">
-    <link rel="preconnect" href="https://us1.locationiq.com" crossorigin>
-    <link rel="dns-prefetch" href="//nominatim.openstreetmap.org">
-    <link rel="preconnect" href="https://nominatim.openstreetmap.org" crossorigin>
-    
-    <!-- Non-blocking CSS -->
-    <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="styles.css"></noscript>
-    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
-    <link rel="preload" as="style" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"></noscript>
-    <!-- Ensure our overrides apply last -->
-    <link rel="stylesheet" href="styles.css">
-    
+    <link rel=stylesheet href=styles.css>
+    <link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css> 
+    <link rel=stylesheet href=https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css>
+    <link rel=stylesheet href=styles.css>
     <link rel=manifest href=manifest.json> 
-    
-    <!-- Preload likely LCP image -->
-    <link rel="preload" as="image" href="https://gms.stte.com.br/gms_rno/images/logo.jpg">
-
-    <!-- Hint browser to warm up next navigation to map -->
-    <link rel="prefetch" href="mapa/index.html" as="document" crossorigin>
-
-    <!-- Ensure webfonts render quickly -->
-    <style>/* hint: prefer swap for any @font-face that might block */
-@font-face{font-display:swap}
-</style>
-    <link rel="preload" as="font" type="font/woff2" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2?v=4.7.0" crossorigin>
+    <script>"serviceWorker"in navigator&&navigator.serviceWorker.register("sw.js").then(()=>console.log("Service Worker registrado com sucesso!")).catch(r=>console.log("Erro ao registrar Service Worker:",r))</script>
+       
 </head>
 <body>
     <div class=container>
         <div class=logo-container>
-            <img src=https://gms.stte.com.br/gms_rno/images/logo.jpg alt="STTE Logo" class=logo onerror='this.style.display="none"' fetchpriority="high" decoding="async">
+            <img src=https://gms.stte.com.br/gms_rno/images/logo.jpg alt="STTE Logo" class=logo onerror='this.style.display="none"'>
         </div>
          
         <div class="stte-icon-container">
-            <img src="https://stte.com.br/wp-content/uploads/2025/03/Stte-Favicon.webp" alt="STTE Icon" class="stte-icon" loading="lazy" decoding="async">
+            <img src="https://stte.com.br/wp-content/uploads/2025/03/Stte-Favicon.webp" alt="STTE Icon" class="stte-icon">
         </div>
 
         <h2>Informe de Acionamento STTE</h2>
@@ -206,11 +171,11 @@
 
     </div>
     
-    <script src=carregar-opcoes.js defer></script>
-    <script src=coordenadas.js defer></script>
-    <script src=scripts.js defer></script>
-    <script src=fca.js defer></script>
-    <script src=protocolo.js defer></script>
+    <script src=carregar-opcoes.js></script>
+    <script src=coordenadas.js></script>
+    <script src=scripts.js></script>
+    <script src=fca.js></script>
+    <script src=protocolo.js></script>
     
     <footer class="footer">
         <div class="footer-content">
@@ -228,15 +193,6 @@
             </div>
         </div>
     </footer>
-<script>
-    window.addEventListener('load', function(){
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(function(){ console.log('Service Worker registrado com sucesso!'); })
-                .catch(function(r){ console.log('Erro ao registrar Service Worker:', r); });
-        }
-    });
-</script>
 </body>
 </html>
  
