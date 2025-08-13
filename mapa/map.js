@@ -9,12 +9,42 @@ class InteractiveMap {
         this.isInitialized = false;
         this.autoNavigate = true; // Controle de navegação automática
         this.routes = new Map(); // Armazenar rotas desenhadas
+        this.locationCache = new Map(); // Cache de cidade/estado por coordenada (memória)
+        this.persistentCacheKey = 'stte_site_locations_v1';
+        this.persistentLocationStore = {}; // Cache persistente (localStorage)
         
         this.init();
     }
 
+    loadPersistentLocations() {
+        try {
+            const raw = localStorage.getItem(this.persistentCacheKey);
+            if (raw) {
+                this.persistentLocationStore = JSON.parse(raw) || {};
+                // Hidratar o cache em memória
+                Object.entries(this.persistentLocationStore).forEach(([key, rec]) => {
+                    if (rec && rec.location) this.locationCache.set(key, rec.location);
+                });
+            }
+        } catch (e) {
+            console.warn('Falha ao carregar cache persistente de localidades', e);
+            this.persistentLocationStore = {};
+        }
+    }
+
+    savePersistentLocation(lat, lng, location) {
+        const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+        this.persistentLocationStore[key] = { location, lat, lng, ts: Date.now() };
+        try {
+            localStorage.setItem(this.persistentCacheKey, JSON.stringify(this.persistentLocationStore));
+        } catch (e) {
+            console.warn('Falha ao salvar cache persistente de localidades', e);
+        }
+    }
+
     async init() {
         try {
+            this.loadPersistentLocations();
             await this.loadSites();
             this.initializeMap();
             this.setupEventListeners();
@@ -33,9 +63,10 @@ class InteractiveMap {
             name: siteName,
             lat: coords.lat,
             lng: coords.lng,
-            coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+            coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`,
+            location: '' // será preenchido sob demanda
         }));
-
+        
         this.filteredSites = [...this.allSites];
         
         console.log(`Carregados ${this.allSites.length} sites`);
@@ -98,6 +129,8 @@ class InteractiveMap {
         document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllSites());
         document.getElementById('autoNavigateBtn').addEventListener('click', () => this.toggleAutoNavigate());
         document.getElementById('toggleSidebarBtn').addEventListener('click', () => this.toggleSidebar());
+        const exportBtn = document.getElementById('exportLocationsBtn');
+        if (exportBtn) exportBtn.addEventListener('click', () => this.exportLocations());
 
         // Busca
         document.getElementById('siteSearch').addEventListener('input', (e) => this.filterSites(e.target.value));
@@ -130,38 +163,41 @@ class InteractiveMap {
         const item = document.createElement('div');
         item.className = 'site-item';
         item.dataset.siteName = site.name;
-
+        
         item.innerHTML = `
             <input type="checkbox" class="site-checkbox" id="site-${site.name}">
             <div class="site-info">
                 <div class="site-name">${site.name}</div>
-                <div class="site-coordinates">${site.coordinates}</div>
+                <div class="site-location">Buscando localidade...</div>
             </div>
         `;
         
+        // Preencher cidade/estado de forma assíncrona (com cache)
+        this.populateSiteLocation(site, item);
+        
         // Adicionar tooltip para duplo clique
         item.title = `Clique para selecionar • Duplo clique para navegar diretamente`;
-
+        
         // Event listeners
         const checkbox = item.querySelector('.site-checkbox');
         checkbox.addEventListener('change', (e) => {
             e.stopPropagation();
             this.toggleSiteSelection(site.name, e.target.checked);
         });
-
+        
         item.addEventListener('click', (e) => {
             if (e.target !== checkbox) {
                 checkbox.checked = !checkbox.checked;
                 this.toggleSiteSelection(site.name, checkbox.checked);
             }
         });
-
+        
         // Adicionar duplo clique para navegar diretamente (independente da seleção)
         item.addEventListener('dblclick', (e) => {
             e.preventDefault();
             this.navigateToSite(site.name);
         });
-
+        
         return item;
     }
 
@@ -252,6 +288,7 @@ class InteractiveMap {
         } else {
             this.filteredSites = this.allSites.filter(site => 
                 site.name.toLowerCase().includes(term) ||
+                (site.location && site.location.toLowerCase().includes(term)) ||
                 site.coordinates.includes(term)
             );
         }
@@ -792,6 +829,110 @@ class InteractiveMap {
                 }
             }
         });
+    }
+
+    // Resolver cidade/estado via a mesma lógica do scripts.js (com cache)
+    async resolveLocation(lat, lng) {
+        const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
+        if (this.locationCache.has(key)) return this.locationCache.get(key);
+        try {
+            let resultado;
+            if (typeof window.identificarCidade === 'function') {
+                resultado = await window.identificarCidade(lat, lng);
+            } else {
+                resultado = await this.localIdentificarCidade(lat, lng);
+            }
+            const loc = (resultado && resultado.localidade) ? resultado.localidade : 'Localidade indisponível';
+            this.locationCache.set(key, loc);
+            return loc;
+        } catch (e) {
+            console.warn('Falha ao obter localidade', e);
+            const fallback = 'Localidade indisponível';
+            this.locationCache.set(key, fallback);
+            return fallback;
+        }
+    }
+    
+    // Fallback local do identificarCidade (mesma abordagem do scripts.js)
+    async localIdentificarCidade(lat, lng) {
+        try {
+            const API_KEY = 'pk.8d008de7d17f1ad2ebfb20d6a4e26e33';
+            const respLocationIQ = await fetch(`https://us1.locationiq.com/v1/reverse?key=${API_KEY}&lat=${lat}&lon=${lng}&format=json&`);
+            const dataLocationIQ = await respLocationIQ.json();
+            const respNominatim = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&addressdetails=1`, { headers: { 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8' } });
+            const dataNominatim = await respNominatim.json();
+            const cidade = dataNominatim.address?.city || dataNominatim.address?.municipality || dataNominatim.address?.town || dataNominatim.address?.village || '';
+            const estado = dataNominatim.address?.state || '';
+            const bairro = dataLocationIQ.address?.suburb || dataLocationIQ.address?.neighbourhood || dataLocationIQ.address?.quarter || dataLocationIQ.address?.residential || dataLocationIQ.address?.district || dataLocationIQ.address?.hamlet || dataLocationIQ.address?.administrative_area_level_4 || dataLocationIQ.address?.administrative_area_level_5 || '';
+            const rua = dataLocationIQ.address?.road || dataLocationIQ.address?.street || dataLocationIQ.address?.pedestrian || '';
+            const numero = dataLocationIQ.address?.house_number || '';
+            const enderecoCompleto = [rua, numero, bairro].filter(Boolean).join(', ');
+            if (cidade) {
+                return {
+                    cidade,
+                    estado,
+                    bairro,
+                    rua,
+                    numero,
+                    localidade: `${cidade}/${estado}`,
+                    enderecoCompleto: enderecoCompleto || `${cidade}/${estado}`
+                };
+            } else {
+                const partes = (dataNominatim.display_name || '').split(',');
+                const cidadeAlternativa = partes[0]?.trim() || '';
+                const bairroAlternativo = partes[1]?.trim() || '';
+                return {
+                    cidade: cidadeAlternativa,
+                    estado,
+                    bairro: bairroAlternativo,
+                    rua: '',
+                    numero: '',
+                    localidade: cidadeAlternativa ? `${cidadeAlternativa}/${estado}` : (dataNominatim.display_name?.split(',')[0] || ''),
+                    enderecoCompleto: dataNominatim.display_name || ''
+                };
+            }
+        } catch (error) {
+            console.error('Erro no localIdentificarCidade:', error);
+            return { cidade: '', estado: '', bairro: '', rua: '', numero: '', localidade: 'Localidade indisponível', enderecoCompleto: 'Localidade indisponível' };
+        }
+    }
+
+    async populateSiteLocation(site, item) {
+        try {
+            const locationEl = item.querySelector('.site-location');
+            if (!locationEl) return;
+            const key = `${site.lat.toFixed(4)},${site.lng.toFixed(4)}`;
+            // Mostrar imediatamente do cache persistente se existir
+            if (this.locationCache.has(key)) {
+                const cached = this.locationCache.get(key);
+                locationEl.textContent = cached;
+                site.location = cached;
+                return; // já temos, não precisa buscar
+            }
+            const loc = await this.resolveLocation(site.lat, site.lng);
+            locationEl.textContent = loc;
+            site.location = loc;
+            this.savePersistentLocation(site.lat, site.lng, loc);
+        } catch (_) {}
+    }
+
+    exportLocations() {
+        // Montar objeto simples: nomeSite -> { lat, lng, location }
+        const data = {};
+        this.allSites.forEach(site => {
+            const key = `${site.lat.toFixed(4)},${site.lng.toFixed(4)}`;
+            const loc = this.locationCache.get(key) || site.location || '';
+            data[site.name] = { lat: site.lat, lng: site.lng, location: loc };
+        });
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'localidades.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }
 }
 

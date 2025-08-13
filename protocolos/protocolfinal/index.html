@@ -4,24 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Informativo de Protocolo</title>
+    
+    <!-- Resource Hints -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="dns-prefetch" href="//stackpath.bootstrapcdn.com">
+    <link rel="preconnect" href="https://stackpath.bootstrapcdn.com" crossorigin>
+    <link rel="dns-prefetch" href="//gms.stte.com.br">
+    <link rel="preconnect" href="https://gms.stte.com.br" crossorigin>
+    
+    <!-- Non-blocking CSS -->
+    <link rel="preload" as="style" href="styles.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></noscript>
+    <link rel="preload" as="style" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"></noscript>
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="styles.css">
+    
     <link rel="manifest" href="manifest.json"> 
-    <script>
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('sw.js')
-            .then(() => console.log("Service Worker registrado com sucesso!"))
-            .catch(err => console.log("Erro ao registrar Service Worker:", err));
-        }
-      </script>
-       
 </head>
 <body>
     <div class="container">
         <div class="logo-container">
-            <img src="https://gms.stte.com.br/gms_rno/images/logo.jpg" alt="STTE Logo" class="logo" onerror="this.style.display='none'">
+            <img src="https://gms.stte.com.br/gms_rno/images/logo.jpg" alt="STTE Logo" class="logo" onerror="this.style.display='none'" fetchpriority="high" decoding="async">
         </div>
          
         <h2>Informativo de Protocolo</h2>
@@ -63,10 +69,19 @@
         
     </div>
     
-    <script src="coordenadas.js"></script>
-    <script src="scripts.js"></script>
-    <script src="protocolos.js"></script>
-    
+    <script src="coordenadas.js" defer></script>
+    <script src="scripts.js" defer></script>
+    <script src="protocolos.js" defer></script>
+    <link rel="preload" as="font" type="font/woff2" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/fonts/fontawesome-webfont.woff2?v=4.7.0" crossorigin>
+    <script>
+		window.addEventListener('load', function(){
+			if ('serviceWorker' in navigator) {
+				navigator.serviceWorker.register('sw.js')
+					.then(function(){ console.log('Service Worker registrado com sucesso!'); })
+					.catch(function(err){ console.log('Erro ao registrar Service Worker:', err); });
+			}
+		});
+    </script>
     </body>
 <p class="text-muted">
     Thalyson Silva - NOC - STTE - 
