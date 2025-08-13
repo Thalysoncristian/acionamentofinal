@@ -279,21 +279,7 @@ function formatarDataHora(data, tipo = 'padrao') {
     });
 }
 
-// Função para calcular a distância entre duas coordenadas usando a fórmula de Haversine
-function calcularDistancia(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Raio da Terra em quilômetros
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-              Math.sin(dLon/2) * Math.sin(dLon/2);
-    
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    const distancia = R * c;
-    
-    return distancia.toFixed(1); // Retorna a distância com 1 casa decimal
-}
+
 
 // Função para gerar o acionamento
 async function gerarAcionamento() {
@@ -639,18 +625,7 @@ async function preencherDados(value) {
     }
 }
 
-// Função para abrir o Google Maps com as coordenadas do KML
-function abrirGoogleMaps() {
-    const site = document.getElementById('site-search').value.toUpperCase();
-    const coords = coordenadas[site];
 
-    if (coords) {
-        const url = `https://www.google.com/maps?q=${coords.lat},${coords.lng}&z=15`;
-        window.open(url, '_blank');
-    } else {
-        alert('Coordenadas não encontradas para o site selecionado.');
-    }
-}
 
 document.addEventListener('click', function(event) {
   const dropdownContent = document.getElementById('dropdown-content');
@@ -784,184 +759,15 @@ document.getElementById('site').addEventListener('change', async function() {
     await preencherDados(this.value);
 });
 
-// Remover a função compartilharWhatsApp e substituir por toggleUtilitarioDistancia
-function toggleUtilitarioDistancia() {
-    const utilitario = document.querySelector('.utilitario-distancia');
-    const botao = document.querySelector('button[onclick="toggleUtilitarioDistancia()"]');
-    
-    if (utilitario.style.display === 'none') {
-        // Mostrar o utilitário
-        utilitario.style.display = 'block';
-        botao.innerHTML = '<i class="fa fa-times"></i> Fechar';
-        botao.style.backgroundColor = '#dc3545'; // Vermelho para indicar que pode fechar
-        
-        // Limpar os campos e resultado
-        document.getElementById('site-origem').value = '';
-        document.getElementById('site-destino').value = '';
-        document.getElementById('resultado-distancia').innerHTML = '';
-    } else {
-        // Ocultar o utilitário
-        utilitario.style.display = 'none';
-        botao.innerHTML = '<i class="fa fa-calculator"></i> Calcular Distância';
-        botao.style.backgroundColor = '#07407e'; // Voltar à cor original
-    }
-}
 
-// Função para calcular distância entre dois sites específicos
-async function calcularDistanciaEntreSites() {
-    const siteOrigem = document.getElementById('site-origem').value.toUpperCase().trim();
-    const siteDestino = document.getElementById('site-destino').value.toUpperCase().trim();
-    const resultadoElement = document.getElementById('resultado-distancia');
-    const API_KEY = 'pk.8d008de7d17f1ad2ebfb20d6a4e26e33';
-    
-    // Verificar se os sites existem no banco de dados
-    const coordsOrigem = coordenadas[siteOrigem];
-    const coordsDestino = coordenadas[siteDestino];
-    
-    if (!coordsOrigem || !coordsDestino) {
-        let mensagem = 'Sites não encontrados no banco de dados:';
-        if (!coordsOrigem) mensagem += `\n- ${siteOrigem}`;
-        if (!coordsDestino) mensagem += `\n- ${siteDestino}`;
-        resultadoElement.innerHTML = mensagem.replace(/\n/g, '<br>');
-        return;
-    }
 
-    // Mostrar mensagem de carregamento
-    resultadoElement.innerHTML = '<div class="loading">Calculando rota...</div>';
-    
-    try {
-        // Calcular a distância em linha reta primeiro
-        const distanciaLinhaReta = calcularDistancia(
-            coordsOrigem.lat, coordsOrigem.lng,
-            coordsDestino.lat, coordsDestino.lng
-        );
 
-        // Tentar obter a rota usando LocationIQ
-        const url = `https://us1.locationiq.com/v1/directions/driving/${coordsOrigem.lng},${coordsOrigem.lat};${coordsDestino.lng},${coordsDestino.lat}?key=${API_KEY}&overview=full&geometries=geojson`;
-        
-        const response = await fetch(url);
-        const data = await response.json();
-
-        if (data.routes && data.routes.length > 0) {
-            const rota = data.routes[0];
-            const distanciaRota = (rota.distance / 1000).toFixed(1); // Converter metros para km
-            const tempoEstimado = Math.round(rota.duration / 60); // Converter segundos para minutos
-            
-            // Formatar o resultado
-            const resultado = `
-                <strong>Distância entre sites:</strong><br>
-                De: ${siteOrigem} (${coordsOrigem.lat.toFixed(6)}, ${coordsOrigem.lng.toFixed(6)})<br>
-                Para: ${siteDestino} (${coordsDestino.lat.toFixed(6)}, ${coordsDestino.lng.toFixed(6)})<br>
-                <strong>Distância da rota: ${distanciaRota} km</strong><br>
-                <em>Distância em linha reta: ${distanciaLinhaReta} km</em><br>
-                <strong>Tempo estimado: ${tempoEstimado} minutos</strong><br>
-                <button onclick="abrirRotaNoMaps('${siteOrigem}', '${siteDestino}')" class="btn-rota">
-                    <i class="fa fa-map-marker"></i> Abrir rota no mapa
-                </button>
-            `;
-            
-            resultadoElement.innerHTML = resultado;
-        } else {
-            throw new Error('Não foi possível calcular a rota');
-        }
-    } catch (error) {
-        console.error('Erro ao calcular rota:', error);
-        // Em caso de erro, mostrar apenas a distância em linha reta
-        resultadoElement.innerHTML = `
-            <div class="error">
-                Não foi possível calcular a rota completa. Mostrando distância em linha reta...<br>
-                <strong>Distância em linha reta:</strong><br>
-                De: ${siteOrigem} (${coordsOrigem.lat.toFixed(6)}, ${coordsOrigem.lng.toFixed(6)})<br>
-                Para: ${siteDestino} (${coordsDestino.lat.toFixed(6)}, ${coordsDestino.lng.toFixed(6)})<br>
-                <strong>Distância: ${calcularDistancia(
-                    coordsOrigem.lat, coordsOrigem.lng,
-                    coordsDestino.lat, coordsDestino.lng
-                )} km</strong>
-            </div>
-        `;
-    }
-}
-
-// Função para abrir a rota no mapa (usando OpenStreetMap)
-function abrirRotaNoMaps(siteOrigem, siteDestino) {
-    const coordsOrigem = coordenadas[siteOrigem];
-    const coordsDestino = coordenadas[siteDestino];
-    
-    if (coordsOrigem && coordsDestino) {
-        // Usar OpenStreetMap para mostrar a rota
-        const url = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${coordsOrigem.lat},${coordsOrigem.lng};${coordsDestino.lat},${coordsDestino.lng}`;
-        window.open(url, '_blank');
-    }
-}
 
 // Função para abrir o mapa interativo
 function abrirMapa() {
     window.open('mapa/index.html', '_blank');
 }
 
-// Adicionar autocomplete para os campos de site
-document.addEventListener('DOMContentLoaded', function() {
-    // Configurar autocomplete para site de origem
-    const siteOrigemInput = document.getElementById('site-origem');
-    const dropdownOrigem = document.getElementById('dropdown-origem');
-    
-    siteOrigemInput.addEventListener('input', function() {
-        const filter = this.value.toUpperCase();
-        dropdownOrigem.innerHTML = '';
-        
-        if (filter.length >= 1) {
-            for (const [site, coords] of Object.entries(coordenadas)) {
-                if (site.includes(filter)) {
-                    const div = document.createElement('div');
-                    div.textContent = site;
-                    div.addEventListener('click', function() {
-                        siteOrigemInput.value = site;
-                        dropdownOrigem.classList.remove('show');
-                    });
-                    dropdownOrigem.appendChild(div);
-                }
-            }
-            dropdownOrigem.classList.add('show');
-        } else {
-            dropdownOrigem.classList.remove('show');
-        }
-    });
-    
-    // Configurar autocomplete para site de destino
-    const siteDestinoInput = document.getElementById('site-destino');
-    const dropdownDestino = document.getElementById('dropdown-destino');
-    
-    siteDestinoInput.addEventListener('input', function() {
-        const filter = this.value.toUpperCase();
-        dropdownDestino.innerHTML = '';
-        
-        if (filter.length >= 1) {
-            for (const [site, coords] of Object.entries(coordenadas)) {
-                if (site.includes(filter)) {
-                    const div = document.createElement('div');
-                    div.textContent = site;
-                    div.addEventListener('click', function() {
-                        siteDestinoInput.value = site;
-                        dropdownDestino.classList.remove('show');
-                    });
-                    dropdownDestino.appendChild(div);
-                }
-            }
-            dropdownDestino.classList.add('show');
-        } else {
-            dropdownDestino.classList.remove('show');
-        }
-    });
-    
-    // Fechar dropdowns quando clicar fora
-    document.addEventListener('click', function(event) {
-        if (!event.target.matches('#site-origem')) {
-            dropdownOrigem.classList.remove('show');
-        }
-        if (!event.target.matches('#site-destino')) {
-            dropdownDestino.classList.remove('show');
-        }
-    });
-});
+
 
 

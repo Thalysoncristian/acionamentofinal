@@ -79,12 +79,7 @@
             <button type=button onclick=copiarAcionamento()>
                 <i class="fa fa-copy"></i> Copiar
             </button>
-            <button type=button id=rotasButton onclick=abrirGoogleMaps()>
-                <i class="fa fa-map-marker"></i> Localização
-            </button>
-            <button type=button onclick=toggleUtilitarioDistancia()>
-                <i class="fa fa-calculator"></i> Calcular Distância
-            </button>
+
             <button type=button onclick=toggleFCA()>
                 <i class="fa fa-file-text"></i> FCA
             </button>
@@ -173,28 +168,7 @@
             <div class="result" id="resultadoProtocolo"></div>
         </div>
         
-        <!-- Utilitário de Distância (inicialmente oculto) -->
-        <div class="utilitario-distancia" style="display: none;">
-            <h3>Utilitário de Distância entre Sites</h3>
-            <div class="distancia-form">
-                <div class="form-group">
-                    <label for="site-origem">Site de Origem:</label>
-                    <input type="text" id="site-origem" placeholder="Digite o site de origem">
-                    <div id="dropdown-origem" class="dropdown-content"></div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="site-destino">Site de Destino:</label>
-                    <input type="text" id="site-destino" placeholder="Digite o site de destino">
-                    <div id="dropdown-destino" class="dropdown-content"></div>
-                </div>
-                
-                <button type="button" onclick="calcularDistanciaEntreSites()">
-                    <i class="fa fa-calculator"></i> Calcular Distância
-                </button>
-            </div>
-            <div id="resultado-distancia" class="resultado-distancia"></div>
-        </div>
+
     </div>
     
     <script src=carregar-opcoes.js></script>

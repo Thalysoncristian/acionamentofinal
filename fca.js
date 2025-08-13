@@ -3,14 +3,14 @@ function toggleFCA() {
     const fcaContainer = document.querySelector('.fca-container');
     const mainForm = document.getElementById('stteForm');
     const mainResult = document.getElementById('resultado');
-    const utilitarioDistancia = document.querySelector('.utilitario-distancia');
+
     
     if (fcaContainer.style.display === 'none') {
         // Mostrar FCA e ocultar outros
         fcaContainer.style.display = 'block';
         mainForm.style.display = 'none';
         mainResult.style.display = 'none';
-        utilitarioDistancia.style.display = 'none';
+
         
         // Sempre definir data e hora atual quando abrir o FCA
         const agora = new Date();
@@ -156,7 +156,7 @@ function voltarAcionamento() {
     const fcaContainer = document.querySelector('.fca-container');
     const mainForm = document.getElementById('stteForm');
     const mainResult = document.getElementById('resultado');
-    const utilitarioDistancia = document.querySelector('.utilitario-distancia');
+
     
     // Ocultar FCA e mostrar formulário principal
     fcaContainer.style.display = 'none';

@@ -3,7 +3,7 @@ function toggleProtocolo() {
     const protocoloContainer = document.querySelector('.protocolo-container');
     const mainForm = document.getElementById('stteForm');
     const mainResult = document.getElementById('resultado');
-    const utilitarioDistancia = document.querySelector('.utilitario-distancia');
+
     const fcaContainer = document.querySelector('.fca-container');
     
     if (protocoloContainer.style.display === 'none') {
@@ -11,7 +11,7 @@ function toggleProtocolo() {
         protocoloContainer.style.display = 'block';
         mainForm.style.display = 'none';
         mainResult.style.display = 'none';
-        utilitarioDistancia.style.display = 'none';
+
         fcaContainer.style.display = 'none';
         
         // Limpar resultado anterior
