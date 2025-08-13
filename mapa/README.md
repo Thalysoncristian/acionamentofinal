@@ -7,10 +7,11 @@ Mapa interativo desenvolvido para visualização e seleção de sites da STTE, p
 
 ### 🎯 Visualização de Sites
 - **Mapa Interativo**: Visualização completa de todos os sites em um mapa baseado em OpenStreetMap
-- **Marcadores Personalizados**: Cada site é representado por um marcador único com as 3 primeiras letras do código
+- **Marcadores com Nome Completo**: Nome do site com ícone de torre de comunicação
 - **Popups Informativos**: Clique nos marcadores para ver detalhes do site
 - **Navegação Automática**: Ao marcar um site, o mapa navega automaticamente até ele
 - **Efeitos Visuais**: Marcadores destacados com animação de pulso quando selecionados
+- **Sincronização Bidirecional**: Clicar no marcador seleciona o site na lista
 
 ### 📋 Lista de Sites
 - **Sidebar Responsiva**: Lista completa de todos os sites disponíveis
@@ -55,10 +56,12 @@ Abra o arquivo: mapa/index.html
 ### 3. Seleção de Sites
 1. **Lista de Sites**: Use a sidebar esquerda para ver todos os sites
 2. **Checkboxes**: Marque os sites que deseja visualizar (navegação automática)
-3. **Duplo Clique**: Navegue diretamente para um site sem selecioná-lo
-4. **Busca**: Use a caixa de busca para encontrar sites específicos
-5. **Controles Rápidos**: Use "Selecionar Todos" ou "Limpar Todos"
-6. **Auto Navegar**: Controle se o mapa navega automaticamente ao selecionar sites
+3. **Clique no Marcador**: Selecione o site diretamente no mapa
+4. **Sincronização**: Sites selecionados ficam sempre visíveis na lista
+5. **Duplo Clique**: Navegue diretamente para um site sem selecioná-lo
+6. **Busca**: Use a caixa de busca para encontrar sites específicos
+7. **Controles Rápidos**: Use "Selecionar Todos" ou "Limpar Todos"
+8. **Auto Navegar**: Controle se o mapa navega automaticamente ao selecionar sites
 
 ### 4. Calculadora de Distâncias
 1. **Selecione Sites**: Marque os sites de destino na lista

@@ -116,10 +116,14 @@ class InteractiveMap {
         const sitesList = document.getElementById('sitesList');
         sitesList.innerHTML = '';
 
+        // Primeiro, renderizar sites filtrados
         this.filteredSites.forEach(site => {
             const siteItem = this.createSiteItem(site);
             sitesList.appendChild(siteItem);
         });
+
+        // Depois, garantir que sites selecionados estejam visíveis
+        this.ensureSelectedSitesVisible();
     }
 
     createSiteItem(site) {
@@ -175,6 +179,7 @@ class InteractiveMap {
         }
 
         this.updateSiteItemStyle(siteName, isSelected);
+        this.scrollToSiteInList(siteName);
         this.updateCounters();
         this.updateDistancePanel();
     }
@@ -185,30 +190,27 @@ class InteractiveMap {
         const site = this.allSites.find(s => s.name === siteName);
         if (!site) return;
 
-        // Criar ícone personalizado
+        // Criar ícone personalizado com nome grande e torre de comunicação
         const icon = L.divIcon({
             className: 'custom-marker',
-            html: `<div style="
-                background: #2196f3;
-                color: white;
-                border-radius: 50%;
-                width: 30px;
-                height: 30px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 12px;
-                font-weight: bold;
-                border: 3px solid white;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-            ">${siteName.substring(0, 3)}</div>`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 15]
+            html: `
+                <div class="marker-container">
+                    <div class="tower-icon">📡</div>
+                    <div class="site-name-large">${siteName}</div>
+                </div>
+            `,
+            iconSize: [150, 50],
+            iconAnchor: [75, 25]
         });
 
         const marker = L.marker([site.lat, site.lng], { icon })
             .addTo(this.map)
             .bindPopup(this.createPopupContent(site));
+
+        // Adicionar evento de clique no marcador para sincronizar com a lista
+        marker.on('click', () => {
+            this.syncMarkerWithList(siteName);
+        });
 
         this.markers.set(siteName, marker);
     }
@@ -255,6 +257,7 @@ class InteractiveMap {
         }
 
         this.renderSitesList();
+        this.ensureSelectedSitesVisible(); // Manter selecionados visíveis
         this.updateCounters();
     }
 
@@ -538,10 +541,10 @@ class InteractiveMap {
             const icon = marker.getIcon();
             const originalHtml = icon.options.html;
             
-            // Efeito de pulso
+            // Efeito de pulso na torre
             icon.options.html = originalHtml.replace(
-                'background: #2196f3',
-                'background: #ff5722; animation: pulse 1s ease-in-out'
+                '📡',
+                '📡 <span style="animation: pulse 1s ease-in-out; color: #ff5722;">⚡</span>'
             );
             marker.setIcon(icon);
 
@@ -662,6 +665,71 @@ class InteractiveMap {
         ];
         return colors[index % colors.length];
     }
+
+    // Função para sincronizar marcador com a lista
+    syncMarkerWithList(siteName) {
+        // Encontrar o item na lista
+        const siteItem = document.querySelector(`[data-site-name="${siteName}"]`);
+        if (siteItem) {
+            // Verificar se já está selecionado
+            const checkbox = siteItem.querySelector('.site-checkbox');
+            const isCurrentlySelected = this.selectedSites.has(siteName);
+            
+            if (!isCurrentlySelected) {
+                // Se não está selecionado, selecionar
+                checkbox.checked = true;
+                this.toggleSiteSelection(siteName, true);
+            } else {
+                // Se já está selecionado, apenas scroll para ele
+                this.scrollToSiteInList(siteName);
+            }
+        }
+    }
+
+    // Função para scroll para um site na lista
+    scrollToSiteInList(siteName) {
+        const siteItem = document.querySelector(`[data-site-name="${siteName}"]`);
+        if (siteItem) {
+            // Scroll suave para o item
+            siteItem.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+            
+            // Adicionar destaque temporário
+            siteItem.style.backgroundColor = '#fff3cd';
+            siteItem.style.borderLeft = '4px solid #ffc107';
+            
+            // Remover destaque após 2 segundos
+            setTimeout(() => {
+                siteItem.style.backgroundColor = '';
+                siteItem.style.borderLeft = '';
+            }, 2000);
+        }
+    }
+
+    // Função para manter sites selecionados sempre visíveis
+    ensureSelectedSitesVisible() {
+        this.selectedSites.forEach(siteName => {
+            const siteItem = document.querySelector(`[data-site-name="${siteName}"]`);
+            if (siteItem) {
+                // Garantir que o item não esteja oculto por filtros
+                siteItem.classList.remove('hidden');
+                siteItem.style.display = 'flex';
+                
+                // Se o site não está na lista filtrada, adicioná-lo
+                const isInFilteredList = this.filteredSites.some(site => site.name === siteName);
+                if (!isInFilteredList) {
+                    const site = this.allSites.find(s => s.name === siteName);
+                    if (site) {
+                        const newSiteItem = this.createSiteItem(site);
+                        const sitesList = document.getElementById('sitesList');
+                        sitesList.appendChild(newSiteItem);
+                    }
+                }
+            }
+        });
+    }
 }
 
 // Inicializar mapa quando a página carregar
@@ -673,21 +741,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.map = map;
 });
 
-// Adicionar estilos CSS para marcadores personalizados
-const style = document.createElement('style');
-style.textContent = `
-    .custom-marker {
-        background: transparent !important;
-        border: none !important;
-    }
-    
-    .custom-marker div {
-        transition: all 0.3s ease;
-    }
-    
-    .custom-marker div:hover {
-        transform: scale(1.2);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
-    }
-`;
-document.head.appendChild(style); 
+ 

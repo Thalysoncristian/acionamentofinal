@@ -394,6 +394,54 @@ body {
     color: #6c757d;
 }
 
+/* Estilos para marcadores personalizados */
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+.marker-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.marker-container:hover {
+    transform: scale(1.05);
+    z-index: 1000 !important;
+}
+
+.tower-icon {
+    font-size: 16px;
+    margin-bottom: 2px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    transition: all 0.3s ease;
+}
+
+.tower-icon:hover {
+    transform: scale(1.2);
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.7));
+}
+
+.site-name-large {
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: nowrap;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    backdrop-filter: blur(3px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 /* Scrollbar personalizada */
 .sites-container::-webkit-scrollbar {
     width: 6px;
