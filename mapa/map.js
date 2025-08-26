@@ -51,14 +51,66 @@ class InteractiveMap {
             center: center,
             zoom: 8,
             minZoom: 4,
-            maxZoom: 18
+            maxZoom: 19
         });
 
-        // Adicionar camada de tiles (OpenStreetMap)
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 18
+        // Criar camadas de mapa
+        this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+            maxZoom: 19,
+            subdomains: 'abcd'
+        });
+
+        // Camada com nomes de ruas, estradas e lugares
+        this.labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19,
+            opacity: 0.9
+        });
+
+        // Camada adicional com nomes de ruas e estradas
+        this.streetsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19,
+            opacity: 0.8
+        });
+
+        // Camada com nomes de cidades e lugares importantes
+        this.citiesLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Cities/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '© Esri',
+            maxZoom: 19,
+            opacity: 0.9
+        });
+
+        // Adicionar camadas ao mapa (satélite + nomes de bairros + nomes de ruas + nomes de cidades)
+        // Configuração otimizada para visualização de satélite com nomes de ruas e bairros
+        this.satelliteLayer.addTo(this.map);
+        this.labelsLayer.addTo(this.map);
+        this.streetsLayer.addTo(this.map);
+        this.citiesLayer.addTo(this.map);
+
+        // Criar controle de camadas
+        const baseMaps = {
+            "Satélite": this.satelliteLayer,
+            "OpenStreetMap": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 18
+            })
+        };
+
+        const overlayMaps = {
+            "Nomes de Bairros": this.labelsLayer,
+            "Nomes de Ruas": this.streetsLayer,
+            "Nomes de Cidades": this.citiesLayer
+        };
+
+        L.control.layers(baseMaps, overlayMaps, {
+            collapsed: false,
+            position: 'topright'
         }).addTo(this.map);
+
+        // Adicionar controle de Street View
+        this.addStreetViewControl();
 
         // Ajustar view para mostrar todos os sites
         if (bounds.isValid()) {
@@ -66,6 +118,54 @@ class InteractiveMap {
         }
 
         this.isInitialized = true;
+    }
+
+    addStreetViewControl() {
+        // Criar botão de Street View
+        const streetViewButton = L.Control.extend({
+            options: {
+                position: 'topright'
+            },
+
+            onAdd: function(map) {
+                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+                const button = L.DomUtil.create('a', 'street-view-btn', container);
+                button.innerHTML = '<i class="fas fa-street-view"></i>';
+                button.title = 'Street View';
+                button.style.cssText = `
+                    width: 30px;
+                    height: 30px;
+                    line-height: 30px;
+                    text-align: center;
+                    background: white;
+                    border: 2px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    cursor: pointer;
+                    font-size: 16px;
+                    color: #333;
+                    text-decoration: none;
+                    display: block;
+                    margin-bottom: 5px;
+                `;
+
+                button.onclick = function() {
+                    const center = map.getCenter();
+                    const lat = center.lat;
+                    const lng = center.lng;
+                    const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+                    window.open(streetViewUrl, '_blank');
+                };
+
+                return container;
+            }
+        });
+
+        new streetViewButton().addTo(this.map);
+    }
+
+    openStreetView(lat, lng) {
+        const streetViewUrl = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`;
+        window.open(streetViewUrl, '_blank');
     }
 
     calculateBounds() {
@@ -230,8 +330,14 @@ class InteractiveMap {
                 <p><strong>Coordenadas:</strong><br>${site.coordinates}</p>
                 <p><strong>Latitude:</strong> ${site.lat.toFixed(6)}</p>
                 <p><strong>Longitude:</strong> ${site.lng.toFixed(6)}</p>
-                <button onclick="map.showDistancePanel('${site.name}')" class="btn btn-sm btn-primary">
-                    <i class="fas fa-calculator"></i> Calcular Distâncias
+                <div style="display: flex; gap: 5px; margin-top: 10px;">
+                    <button onclick="map.showDistancePanel('${site.name}')" class="btn btn-sm btn-primary">
+                        <i class="fas fa-calculator"></i> Distâncias
+                    </button>
+                    <button onclick="map.openStreetView(${site.lat}, ${site.lng})" class="btn btn-sm btn-success">
+                        <i class="fas fa-street-view"></i> Street View
+                    </button>
+                </div>
                 </button>
             </div>
         `;
