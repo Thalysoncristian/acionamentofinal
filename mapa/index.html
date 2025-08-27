@@ -7,6 +7,8 @@
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -16,6 +18,21 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Erro ao registrar Service Worker:', error);
+                    });
+            });
+        }
+    </script>
 </head>
 <body>
     <div class="app-container">
@@ -38,6 +55,9 @@
                             <button id="autoNavigateBtn" class="btn btn-outline-success btn-sm" title="Navegação Automática">
                                 <i class="fas fa-crosshairs"></i> Auto Navegar
                             </button>
+                            <button id="cacheInfoBtn" class="btn btn-outline-info btn-sm" title="Informações do Cache">
+                                <i class="fas fa-database"></i> Cache
+                            </button>
                             <button id="toggleSidebarBtn" class="btn btn-outline-secondary btn-sm d-md-none">
                                 <i class="fas fa-bars"></i>
                             </button>
@@ -52,8 +72,19 @@
             <!-- Sidebar -->
             <div id="sidebar" class="sidebar">
                 <div class="sidebar-header">
-                    <h5><i class="fas fa-list"></i> Sites Disponíveis</h5>
-                    <span id="selectedCount" class="badge bg-primary">0 selecionados</span>
+                    <div class="header-content">
+                        <h5><i class="fas fa-map-marker-alt"></i> Sites STTE</h5>
+                        <div class="counters">
+                            <div class="counter-item">
+                                <span class="counter-label">Total</span>
+                                <span id="totalSites" class="counter-value">0</span>
+                            </div>
+                            <div class="counter-item selected">
+                                <span class="counter-label">Selecionados</span>
+                                <span id="selectedCount" class="counter-value">0</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Search Box -->
@@ -76,17 +107,7 @@
                     </div>
                 </div>
 
-                <!-- Footer Info -->
-                <div class="sidebar-footer">
-                    <div class="info-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <span id="totalSites">0</span> sites
-                    </div>
-                    <div class="info-item">
-                        <i class="fas fa-eye"></i>
-                        <span id="visibleSites">0</span> visíveis
-                    </div>
-                </div>
+
             </div>
 
             <!-- Map Container -->
@@ -147,7 +168,9 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/leaflet-polylinedecorator@1.6.0/dist/leaflet.polylineDecorator.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="cache-manager.js"></script>
     <script src="../coordenadas.js"></script>
     <script src="map.js"></script>
 </body>

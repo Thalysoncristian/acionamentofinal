@@ -28,17 +28,109 @@ class InteractiveMap {
     }
 
     async loadSites() {
-        // Carregar sites das coordenadas
-        this.allSites = Object.entries(coordenadas).map(([siteName, coords]) => ({
-            name: siteName,
-            lat: coords.lat,
-            lng: coords.lng,
-            coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
-        }));
+        // Inicializar gerenciador de cache com tratamento de erro
+        try {
+            this.cacheManager = new CacheManager();
+            await this.cacheManager.init();
+            console.log('CacheManager inicializado com sucesso');
+        } catch (error) {
+            console.error('Erro ao inicializar CacheManager:', error);
+            this.cacheManager = null;
+        }
+        
+        try {
+            let useCache = false;
+            
+            // Tentar carregar do cache se disponível
+            if (this.cacheManager) {
+                const cachedData = await this.cacheManager.loadCoordinates();
+                
+                if (cachedData && Object.keys(cachedData).length > 0) {
+                    console.log('Carregando dados do cache local...');
+                    this.allSites = Object.entries(cachedData).map(([siteName, coords]) => ({
+                        name: siteName,
+                        lat: coords.lat,
+                        lng: coords.lng,
+                        coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+                    }));
+                    useCache = true;
+                    
+                    // Salvar dados atuais no cache para atualizar
+                    try {
+                        await this.cacheManager.saveCoordinates(coordenadas);
+                        console.log('Cache atualizado com dados mais recentes');
+                    } catch (cacheError) {
+                        console.warn('Erro ao atualizar cache:', cacheError);
+                    }
+                }
+            }
+            
+            if (!useCache) {
+                console.log('Carregando dados do arquivo...');
+                this.allSites = Object.entries(coordenadas).map(([siteName, coords]) => ({
+                    name: siteName,
+                    lat: coords.lat,
+                    lng: coords.lng,
+                    coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+                }));
+                
+                // Salvar no cache para uso futuro
+                if (this.cacheManager) {
+                    try {
+                        await this.cacheManager.saveCoordinates(coordenadas);
+                        console.log('Dados salvos no cache local');
+                    } catch (cacheError) {
+                        console.warn('Erro ao salvar no cache:', cacheError);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            // Fallback para carregamento direto
+            this.allSites = Object.entries(coordenadas).map(([siteName, coords]) => ({
+                name: siteName,
+                lat: coords.lat,
+                lng: coords.lng,
+                coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+            }));
+        }
 
         this.filteredSites = [...this.allSites];
         
+        // Implementar carregamento lazy de marcadores
+        this.visibleMarkers = new Set();
+        this.markerCluster = null;
+        
         console.log(`Carregados ${this.allSites.length} sites`);
+    }
+
+    showCacheStatusIndicator() {
+        // Verificar se o mapa está inicializado
+        if (!this.map || !this.isInitialized) {
+            console.log('Mapa ainda não inicializado, aguardando...');
+            setTimeout(() => this.showCacheStatusIndicator(), 1000);
+            return;
+        }
+
+        // Criar indicador visual permanente do status do cache
+        const indicator = L.control({ position: 'bottomleft' });
+        
+        indicator.onAdd = () => {
+            const div = L.DomUtil.create('div', 'cache-status-indicator');
+            div.innerHTML = `
+                <div style="background: rgba(40, 167, 69, 0.9); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                    <i class="fas fa-database" style="color: #fff;"></i>
+                    <span>Cache Ativo</span>
+                    <button onclick="map.testCachePerformance()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; margin-left: 8px;">
+                        Testar
+                    </button>
+                </div>
+            `;
+            return div;
+        };
+        
+        this.cacheIndicator = indicator;
+        indicator.addTo(this.map);
     }
 
     initializeMap() {
@@ -118,6 +210,649 @@ class InteractiveMap {
         }
 
         this.isInitialized = true;
+        
+        // Implementar carregamento lazy de marcadores
+        this.setupLazyLoading();
+        
+        // Adicionar indicadores após o mapa estar completamente inicializado
+        this.addCacheIndicators();
+    }
+
+    addCacheIndicators() {
+        // Mostrar informações do cache
+        if (this.cacheManager) {
+            this.showCacheInfo();
+            this.showCacheStatusIndicator();
+        }
+    }
+
+    async showCacheInfo() {
+        try {
+            // Verificar se o mapa está inicializado
+            if (!this.map || !this.isInitialized) {
+                console.log('Mapa ainda não inicializado, aguardando...');
+                setTimeout(() => this.showCacheInfo(), 1000);
+                return;
+            }
+
+            const cacheInfo = await this.cacheManager.getCacheInfo();
+            
+            if (cacheInfo.hasData) {
+                const infoMessage = L.control({ position: 'bottomright' });
+                
+                infoMessage.onAdd = () => {
+                    const div = L.DomUtil.create('div', 'cache-info');
+                    div.innerHTML = `
+                        <div style="background: rgba(0, 123, 255, 0.9); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; max-width: 250px;">
+                            <i class="fas fa-database"></i> Cache: ${cacheInfo.sitesCount} sites
+                            <br><small>Atualizado: ${cacheInfo.date}</small>
+                        </div>
+                    `;
+                    return div;
+                };
+                
+                infoMessage.addTo(this.map);
+                
+                // Remover após 5 segundos
+                setTimeout(() => {
+                    if (this.map) {
+                        this.map.removeControl(infoMessage);
+                    }
+                }, 5000);
+            }
+        } catch (error) {
+            console.error('Erro ao mostrar informações do cache:', error);
+        }
+    }
+
+    async showCacheManagement() {
+        try {
+            // Verificar se o cache manager está disponível
+            if (!this.cacheManager) {
+                this.showCacheError('Cache não está disponível. Tente recarregar a página.');
+                return;
+            }
+
+            const cacheInfo = await this.cacheManager.getCacheInfo();
+            const isOutdated = await this.cacheManager.isCacheOutdated();
+            
+            let message = '';
+            if (cacheInfo.hasData) {
+                message = `
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-width: 400px;">
+                        <h5 style="margin: 0 0 15px 0; color: #007bff;">
+                            <i class="fas fa-database"></i> Informações do Cache
+                        </h5>
+                        <div style="margin-bottom: 15px;">
+                            <p><strong>Sites em cache:</strong> ${cacheInfo.sitesCount.toLocaleString('pt-BR')}</p>
+                            <p><strong>Última atualização:</strong> ${cacheInfo.date}</p>
+                            <p><strong>Versão:</strong> ${cacheInfo.version}</p>
+                            ${isOutdated ? '<p style="color: #dc3545;"><i class="fas fa-exclamation-triangle"></i> Cache pode estar desatualizado</p>' : ''}
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button onclick="map.refreshCache()" class="btn btn-primary btn-sm">
+                                <i class="fas fa-sync"></i> Atualizar Cache
+                            </button>
+                            <button onclick="map.clearCache()" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash"></i> Limpar Cache
+                            </button>
+                            <button onclick="map.closeCacheModal()" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-times"></i> Fechar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                message = `
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-width: 400px;">
+                        <h5 style="margin: 0 0 15px 0; color: #007bff;">
+                            <i class="fas fa-database"></i> Cache Local
+                        </h5>
+                        <p>Nenhum dado em cache encontrado.</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button onclick="map.refreshCache()" class="btn btn-primary btn-sm">
+                                <i class="fas fa-download"></i> Criar Cache
+                            </button>
+                            <button onclick="map.closeCacheModal()" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-times"></i> Fechar
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Criar modal diretamente no DOM
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'cache-modal';
+            modalDiv.innerHTML = message;
+            modalDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10000;
+                background: rgba(0, 0, 0, 0.5);
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            // Adicionar overlay de fundo
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+            `;
+            overlay.onclick = () => this.closeCacheModal();
+            
+            modalDiv.appendChild(overlay);
+            
+            // Posicionar o conteúdo do modal
+            const contentDiv = modalDiv.querySelector('div');
+            contentDiv.style.position = 'relative';
+            contentDiv.style.zIndex = '10001';
+            
+            document.body.appendChild(modalDiv);
+            this.cacheModal = modalDiv;
+            
+        } catch (error) {
+            console.error('Erro ao mostrar gerenciamento de cache:', error);
+            this.showCacheError('Erro ao acessar informações do cache: ' + error.message);
+        }
+    }
+
+    showCacheError(message) {
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'cache-error-modal';
+        modalDiv.innerHTML = `
+            <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); max-width: 400px; border-left: 4px solid #dc3545;">
+                <h5 style="margin: 0 0 15px 0; color: #dc3545;">
+                    <i class="fas fa-exclamation-triangle"></i> Erro no Cache
+                </h5>
+                <p style="margin-bottom: 15px; color: #666;">${message}</p>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="map.closeCacheModal()" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-times"></i> Fechar
+                    </button>
+                    <button onclick="map.retryCacheInit()" class="btn btn-primary btn-sm">
+                        <i class="fas fa-redo"></i> Tentar Novamente
+                    </button>
+                </div>
+            </div>
+        `;
+        modalDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        // Adicionar overlay de fundo
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        `;
+        overlay.onclick = () => this.closeCacheModal();
+        
+        modalDiv.appendChild(overlay);
+        
+        // Posicionar o conteúdo do modal
+        const contentDiv = modalDiv.querySelector('div');
+        contentDiv.style.position = 'relative';
+        contentDiv.style.zIndex = '10001';
+        
+        document.body.appendChild(modalDiv);
+        this.cacheModal = modalDiv;
+    }
+
+    async retryCacheInit() {
+        try {
+            this.cacheManager = new CacheManager();
+            await this.cacheManager.init();
+            console.log('CacheManager reinicializado com sucesso');
+            this.closeCacheModal();
+            this.showCacheManagement();
+        } catch (error) {
+            console.error('Erro ao reinicializar cache:', error);
+            this.showCacheError('Falha ao reinicializar cache: ' + error.message);
+        }
+    }
+
+    async refreshCache() {
+        try {
+            await this.cacheManager.saveCoordinates(coordenadas);
+            alert('Cache atualizado com sucesso!');
+            this.closeCacheModal();
+            this.showCacheInfo();
+        } catch (error) {
+            console.error('Erro ao atualizar cache:', error);
+            alert('Erro ao atualizar cache');
+        }
+    }
+
+    async clearCache() {
+        if (confirm('Tem certeza que deseja limpar o cache local?')) {
+            try {
+                await this.cacheManager.clearCache();
+                alert('Cache limpo com sucesso!');
+                this.closeCacheModal();
+            } catch (error) {
+                console.error('Erro ao limpar cache:', error);
+                alert('Erro ao limpar cache');
+            }
+        }
+    }
+
+    closeCacheModal() {
+        if (this.cacheModal) {
+            document.body.removeChild(this.cacheModal);
+            this.cacheModal = null;
+        }
+    }
+
+    // Função para limpar todas as seleções
+    clearAllSelections() {
+        if (confirm('Tem certeza que deseja limpar todas as seleções?')) {
+            // Limpar todas as seleções
+            this.selectedSites.clear();
+            
+            // Remover todos os marcadores do mapa
+            this.markers.forEach((marker, siteName) => {
+                this.map.removeLayer(marker);
+            });
+            this.markers.clear();
+            
+            // Atualizar interface
+            this.renderSitesList();
+            this.updateCounters();
+            this.updateDistancePanel();
+            
+            console.log('✅ Todas as seleções foram limpas');
+        }
+    }
+
+    // Função para debug do cache (disponível no console)
+    async debugCache() {
+        console.log('=== DEBUG DO CACHE ===');
+        console.log('CacheManager disponível:', !!this.cacheManager);
+        
+        if (this.cacheManager) {
+            try {
+                const info = await this.cacheManager.getCacheInfo();
+                console.log('Informações do cache:', info);
+                
+                const hasData = await this.cacheManager.hasCachedData();
+                console.log('Tem dados em cache:', hasData);
+                
+                const isOutdated = await this.cacheManager.isCacheOutdated();
+                console.log('Cache desatualizado:', isOutdated);
+                
+                if (hasData) {
+                    const data = await this.cacheManager.loadCoordinates();
+                    console.log('Dados em cache:', Object.keys(data).length, 'sites');
+                }
+            } catch (error) {
+                console.error('Erro no debug do cache:', error);
+            }
+        }
+        console.log('======================');
+    }
+
+    // Função para testar performance do cache
+    async testCachePerformance() {
+        console.log('🧪 TESTANDO PERFORMANCE DO CACHE...');
+        
+        // Verificar se está rodando localmente
+        const isLocal = window.location.protocol === 'file:';
+        if (isLocal) {
+            console.log('⚠️ Detectado modo local (file://) - performance pode ser afetada');
+        }
+        
+        if (!this.cacheManager) {
+            alert('Cache não está disponível');
+            return;
+        }
+
+        try {
+            // Teste 1: Verificar se há dados
+            const startTime = performance.now();
+            const hasData = await this.cacheManager.hasCachedData();
+            const endTime = performance.now();
+            
+            console.log(`✅ Verificação de dados: ${(endTime - startTime).toFixed(2)}ms`);
+            
+            if (!hasData) {
+                alert('❌ Nenhum dado encontrado no cache!');
+                return;
+            }
+
+            // Teste 2: Simular carregamento do cache (processamento dos dados)
+            const loadStart = performance.now();
+            const cachedData = await this.cacheManager.loadCoordinates();
+            // Simular o processamento que acontece no loadSites()
+            const processedCachedData = Object.entries(cachedData).map(([siteName, coords]) => ({
+                name: siteName,
+                lat: coords.lat,
+                lng: coords.lng,
+                coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+            }));
+            const loadEnd = performance.now();
+            
+            console.log(`✅ Carregamento do cache: ${(loadEnd - loadStart).toFixed(2)}ms`);
+            console.log(`📊 Sites carregados: ${processedCachedData.length}`);
+
+            // Teste 3: Simular carregamento direto (mesmo processamento)
+            const directStart = performance.now();
+            const directData = Object.entries(coordenadas).map(([siteName, coords]) => ({
+                name: siteName,
+                lat: coords.lat,
+                lng: coords.lng,
+                coordinates: `${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)}`
+            }));
+            const directEnd = performance.now();
+            
+            console.log(`📈 Carregamento direto: ${(directEnd - directStart).toFixed(2)}ms`);
+
+            // Calcular melhoria
+            const cacheTime = loadEnd - loadStart;
+            const directTime = directEnd - directStart;
+            
+            // Se o cache for mais lento, mostrar isso claramente
+            if (cacheTime > directTime) {
+                const slowdown = ((cacheTime - directTime) / directTime * 100).toFixed(1);
+                console.log(`⚠️ Cache está ${slowdown}% mais lento que carregamento direto`);
+                
+                // Mostrar resultado honesto
+                const resultMessage = `
+🧪 TESTE DE PERFORMANCE CONCLUÍDO!
+
+📊 RESULTADOS:
+• Cache: ${cacheTime.toFixed(2)}ms
+• Direto: ${directTime.toFixed(2)}ms
+• Status: Cache ${slowdown}% mais lento
+
+${isLocal ? '⚠️ MODO LOCAL DETECTADO: Performance pode ser afetada pelo protocolo file://' : '⚠️ O cache está sendo mais lento que o carregamento direto.'}
+                `;
+
+                console.log(resultMessage);
+                
+                // Atualizar indicador visual
+                this.updateCacheIndicator(false, `${slowdown}% mais lento`);
+                
+                // Mostrar modal com resultados honestos
+                this.showPerformanceResults(cacheTime, directTime, -parseFloat(slowdown), isLocal);
+            } else {
+                const improvement = ((directTime - cacheTime) / directTime * 100).toFixed(1);
+                
+                const resultMessage = `
+🧪 TESTE DE PERFORMANCE CONCLUÍDO!
+
+📊 RESULTADOS:
+• Cache: ${cacheTime.toFixed(2)}ms
+• Direto: ${directTime.toFixed(2)}ms
+• Melhoria: ${improvement}% mais rápido
+
+✅ CACHE FUNCIONANDO PERFEITAMENTE!
+                `;
+
+                console.log(resultMessage);
+                
+                // Atualizar indicador visual
+                this.updateCacheIndicator(true, `${improvement}% mais rápido`);
+                
+                // Mostrar modal com resultados
+                this.showPerformanceResults(cacheTime, directTime, improvement, isLocal);
+            }
+
+        } catch (error) {
+            console.error('❌ Erro no teste de performance:', error);
+            alert('❌ Erro ao testar cache: ' + error.message);
+            this.updateCacheIndicator(false, 'Erro no teste');
+        }
+    }
+
+    updateCacheIndicator(success, message) {
+        if (this.cacheIndicator) {
+            const indicator = this.cacheIndicator.getContainer();
+            if (success) {
+                indicator.innerHTML = `
+                    <div style="background: rgba(40, 167, 69, 0.9); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                        <i class="fas fa-check-circle" style="color: #fff;"></i>
+                        <span>${message}</span>
+                        <button onclick="map.testCachePerformance()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; margin-left: 8px;">
+                            Testar
+                        </button>
+                    </div>
+                `;
+            } else {
+                indicator.innerHTML = `
+                    <div style="background: rgba(220, 53, 69, 0.9); color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                        <i class="fas fa-exclamation-triangle" style="color: #fff;"></i>
+                        <span>${message}</span>
+                        <button onclick="map.testCachePerformance()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 2px 6px; border-radius: 3px; font-size: 10px; cursor: pointer; margin-left: 8px;">
+                            Testar
+                        </button>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    showPerformanceResults(cacheTime, directTime, improvement, isLocal = false) {
+        const isFaster = improvement > 0;
+        const icon = isFaster ? 'fas fa-trophy' : 'fas fa-info-circle';
+        const iconColor = isFaster ? '#ffc107' : '#17a2b8';
+        const titleColor = isFaster ? '#28a745' : '#17a2b8';
+        const title = isFaster ? 'Teste Concluído!' : 'Resultado do Teste';
+        const subtitle = isFaster ? 'Cache funcionando perfeitamente' : 'Análise de performance';
+        const improvementText = isFaster ? `${improvement}% mais rápido` : `${Math.abs(improvement)}% mais lento`;
+        const improvementColor = isFaster ? '#007bff' : '#dc3545';
+        const buttonColor = isFaster ? 'btn-success' : 'btn-info';
+        
+        const modalDiv = document.createElement('div');
+        modalDiv.className = 'performance-modal';
+        modalDiv.innerHTML = `
+            <div style="background: white; padding: 25px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); max-width: 450px; text-align: center;">
+                <div style="margin-bottom: 20px;">
+                    <i class="${icon}" style="font-size: 48px; color: ${iconColor}; margin-bottom: 15px;"></i>
+                    <h4 style="margin: 0 0 10px 0; color: ${titleColor};">${title}</h4>
+                    <p style="color: #666; margin: 0;">${subtitle}</p>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><strong>Cache:</strong></span>
+                        <span style="color: ${isFaster ? '#28a745' : '#dc3545'};">${cacheTime.toFixed(2)}ms</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <span><strong>Sem Cache:</strong></span>
+                        <span style="color: ${isFaster ? '#dc3545' : '#28a745'};">${directTime.toFixed(2)}ms</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #dee2e6; padding-top: 10px;">
+                        <span><strong>Resultado:</strong></span>
+                        <span style="color: ${improvementColor}; font-weight: bold;">${improvementText}</span>
+                    </div>
+                </div>
+                
+                ${!isFaster ? `
+                <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
+                    <small style="color: #856404;">
+                        <strong>Nota:</strong> Para dados pequenos como este (4.334 sites), 
+                        o overhead do IndexedDB pode ser maior que o benefício. 
+                        O cache é mais útil para dados maiores ou conexões lentas.
+                    </small>
+                </div>
+                ` : ''}
+                
+                ${isLocal ? `
+                <div style="background: #d1ecf1; border: 1px solid #bee5eb; padding: 10px; border-radius: 6px; margin-bottom: 15px; text-align: left;">
+                    <small style="color: #0c5460;">
+                        <strong>Modo Local Detectado:</strong> Você está executando o arquivo diretamente (file://). 
+                        Para melhor performance, considere usar um servidor local como Live Server (VS Code) 
+                        ou Python SimpleHTTPServer.
+                    </small>
+                </div>
+                ` : ''}
+                
+                <button onclick="this.parentElement.parentElement.remove()" class="btn ${buttonColor}" style="width: 100%;">
+                    <i class="fas fa-check"></i> Entendi!
+                </button>
+            </div>
+        `;
+        modalDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10000;
+            background: rgba(0, 0, 0, 0.5);
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+        
+        const overlay = document.createElement('div');
+        overlay.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        `;
+        overlay.onclick = () => modalDiv.remove();
+        
+        modalDiv.appendChild(overlay);
+        
+        const contentDiv = modalDiv.querySelector('div');
+        contentDiv.style.position = 'relative';
+        contentDiv.style.zIndex = '10001';
+        
+        document.body.appendChild(modalDiv);
+    }
+
+    setupLazyLoading() {
+        // Mapa começa vazio - sem carregar marcadores automaticamente
+        // Os marcadores só aparecem quando o usuário seleciona sites manualmente
+        console.log('Mapa inicializado - aguardando seleção manual de sites');
+    }
+
+    updateVisibleMarkers() {
+        const bounds = this.map.getBounds();
+        const zoom = this.map.getZoom();
+        
+        // Determinar quais sites devem estar visíveis
+        const sitesInView = this.allSites.filter(site => {
+            return bounds.contains([site.lat, site.lng]);
+        });
+
+        // Se zoom < 10, usar clustering para melhor performance
+        if (zoom < 10) {
+            this.useClustering(sitesInView);
+        } else {
+            this.useIndividualMarkers(sitesInView);
+        }
+    }
+
+    useClustering(sites) {
+        // Limpar marcadores individuais
+        this.clearIndividualMarkers();
+        
+        // Criar cluster se não existir
+        if (!this.markerCluster) {
+            this.markerCluster = L.markerClusterGroup({
+                chunkedLoading: true,
+                maxClusterRadius: 50,
+                spiderfyOnMaxZoom: true,
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true,
+                disableClusteringAtZoom: 10
+            });
+            this.map.addLayer(this.markerCluster);
+        }
+
+        // Adicionar sites ao cluster
+        sites.forEach(site => {
+            if (!this.visibleMarkers.has(site.name)) {
+                const marker = this.createMarker(site);
+                this.markerCluster.addLayer(marker);
+                this.visibleMarkers.add(site.name);
+            }
+        });
+    }
+
+    useIndividualMarkers(sites) {
+        // Remover cluster se existir
+        if (this.markerCluster) {
+            this.map.removeLayer(this.markerCluster);
+            this.markerCluster = null;
+        }
+
+        // Adicionar marcadores individuais apenas para sites visíveis
+        sites.forEach(site => {
+            if (!this.visibleMarkers.has(site.name)) {
+                this.addMarkerToMap(site.name);
+                this.visibleMarkers.add(site.name);
+            }
+        });
+
+        // Remover marcadores que não estão mais visíveis
+        this.visibleMarkers.forEach(siteName => {
+            if (!sites.find(s => s.name === siteName)) {
+                this.removeMarkerFromMap(siteName);
+                this.visibleMarkers.delete(siteName);
+            }
+        });
+    }
+
+    clearIndividualMarkers() {
+        this.visibleMarkers.forEach(siteName => {
+            this.removeMarkerFromMap(siteName);
+        });
+        this.visibleMarkers.clear();
+    }
+
+    createMarker(site) {
+        const icon = L.divIcon({
+            className: 'custom-marker',
+            html: `
+                <div class="marker-container">
+                    <div class="tower-icon">📡</div>
+                    <div class="site-name-large">${site.name}</div>
+                </div>
+            `,
+            iconSize: [150, 50],
+            iconAnchor: [75, 25]
+        });
+
+        const marker = L.marker([site.lat, site.lng], { icon })
+            .bindPopup(this.createPopupContent(site));
+
+        marker.on('click', () => {
+            this.syncMarkerWithList(site.name);
+        });
+
+        return marker;
     }
 
     addStreetViewControl() {
@@ -197,6 +932,7 @@ class InteractiveMap {
         document.getElementById('clearAllBtn').addEventListener('click', () => this.clearAllSelections());
         document.getElementById('selectAllBtn').addEventListener('click', () => this.selectAllSites());
         document.getElementById('autoNavigateBtn').addEventListener('click', () => this.toggleAutoNavigate());
+        document.getElementById('cacheInfoBtn').addEventListener('click', () => this.showCacheManagement());
         document.getElementById('toggleSidebarBtn').addEventListener('click', () => this.toggleSidebar());
 
         // Busca
@@ -216,13 +952,72 @@ class InteractiveMap {
         const sitesList = document.getElementById('sitesList');
         sitesList.innerHTML = '';
 
-        // Primeiro, renderizar sites filtrados
+        // Separar sites selecionados e não selecionados
+        const selectedSites = [];
+        const unselectedSites = [];
+
         this.filteredSites.forEach(site => {
-            const siteItem = this.createSiteItem(site);
-            sitesList.appendChild(siteItem);
+            if (this.selectedSites.has(site.name)) {
+                selectedSites.push(site);
+            } else {
+                unselectedSites.push(site);
+            }
         });
 
-        // Depois, garantir que sites selecionados estejam visíveis
+        // Adicionar seção de sites selecionados (se houver)
+        if (selectedSites.length > 0) {
+            // Criar cabeçalho da seção selecionados
+            const selectedHeader = document.createElement('div');
+            selectedHeader.className = 'sites-section-header selected-header';
+            selectedHeader.innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-star text-warning"></i>
+                    <span>Sites Selecionados (${selectedSites.length})</span>
+                </div>
+                <div class="section-actions">
+                    <button class="btn btn-sm btn-outline-danger" onclick="map.clearAllSelections()" title="Limpar todos">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            sitesList.appendChild(selectedHeader);
+
+            // Adicionar sites selecionados
+            selectedSites.forEach(site => {
+                const siteItem = this.createSiteItem(site);
+                sitesList.appendChild(siteItem);
+            });
+
+            // Adicionar separador se houver sites não selecionados
+            if (unselectedSites.length > 0) {
+                const separator = document.createElement('div');
+                separator.className = 'sites-separator';
+                separator.innerHTML = '<hr>';
+                sitesList.appendChild(separator);
+            }
+        }
+
+        // Adicionar seção de sites não selecionados (se houver)
+        if (unselectedSites.length > 0) {
+            // Criar cabeçalho da seção não selecionados
+            const unselectedHeader = document.createElement('div');
+            unselectedHeader.className = 'sites-section-header unselected-header';
+            unselectedHeader.innerHTML = `
+                <div class="section-title">
+                    <i class="fas fa-list text-muted"></i>
+                    <span>Sites Disponíveis (${unselectedSites.length})</span>
+                </div>
+            `;
+            sitesList.appendChild(unselectedHeader);
+
+            // Adicionar sites não selecionados
+            unselectedSites.forEach(site => {
+                const siteItem = this.createSiteItem(site);
+                sitesList.appendChild(siteItem);
+            });
+        }
+
+        // Garantir que sites selecionados estejam visíveis
         this.ensureSelectedSitesVisible();
     }
 
@@ -231,8 +1026,14 @@ class InteractiveMap {
         item.className = 'site-item';
         item.dataset.siteName = site.name;
 
+        // Verificar se o site está selecionado
+        const isSelected = this.selectedSites.has(site.name);
+        if (isSelected) {
+            item.classList.add('selected');
+        }
+
         item.innerHTML = `
-            <input type="checkbox" class="site-checkbox" id="site-${site.name}">
+            <input type="checkbox" class="site-checkbox" id="site-${site.name}" ${isSelected ? 'checked' : ''}>
             <div class="site-info">
                 <div class="site-name">${site.name}</div>
                 <div class="site-coordinates">${site.coordinates}</div>
@@ -240,17 +1041,21 @@ class InteractiveMap {
         `;
         
         // Adicionar tooltip para duplo clique
-        item.title = `Clique para selecionar • Duplo clique para navegar diretamente`;
+        item.title = `Clique para selecionar/desselecionar • Duplo clique para navegar diretamente`;
 
         // Event listeners
         const checkbox = item.querySelector('.site-checkbox');
+        
+        // Event listener para mudança do checkbox
         checkbox.addEventListener('change', (e) => {
             e.stopPropagation();
             this.toggleSiteSelection(site.name, e.target.checked);
         });
 
+        // Event listener para clique no item (alternar seleção)
         item.addEventListener('click', (e) => {
             if (e.target !== checkbox) {
+                // Alternar o estado do checkbox
                 checkbox.checked = !checkbox.checked;
                 this.toggleSiteSelection(site.name, checkbox.checked);
             }
@@ -347,6 +1152,12 @@ class InteractiveMap {
         const item = document.querySelector(`[data-site-name="${siteName}"]`);
         if (item) {
             item.classList.toggle('selected', isSelected);
+            
+            // Atualizar também o checkbox
+            const checkbox = item.querySelector('.site-checkbox');
+            if (checkbox) {
+                checkbox.checked = isSelected;
+            }
         }
     }
 
@@ -363,7 +1174,7 @@ class InteractiveMap {
         }
 
         this.renderSitesList();
-        this.ensureSelectedSitesVisible(); // Manter selecionados visíveis
+        this.ensureSelectedSitesVisible();
         this.updateCounters();
     }
 
@@ -407,12 +1218,21 @@ class InteractiveMap {
 
     updateCounters() {
         const totalSites = this.allSites.length;
-        const visibleSites = this.filteredSites.length;
         const selectedCount = this.selectedSites.size;
 
-        document.getElementById('totalSites').textContent = totalSites;
-        document.getElementById('visibleSites').textContent = visibleSites;
-        document.getElementById('selectedCount').textContent = `${selectedCount} selecionados`;
+        // Atualizar contadores na sidebar
+        document.getElementById('totalSites').textContent = totalSites.toLocaleString('pt-BR');
+        document.getElementById('selectedCount').textContent = selectedCount.toLocaleString('pt-BR');
+        
+        // Atualizar classe do contador selecionado para destaque visual
+        const selectedCounter = document.querySelector('.counter-item.selected');
+        if (selectedCounter) {
+            if (selectedCount > 0) {
+                selectedCounter.classList.add('active');
+            } else {
+                selectedCounter.classList.remove('active');
+            }
+        }
     }
 
     centerMap() {
@@ -910,4 +1730,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.map = map;
 });
 
+ 
  
