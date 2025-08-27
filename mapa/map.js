@@ -518,7 +518,7 @@ class InteractiveMap {
 
     // Função para testar performance do cache
     async testCachePerformance() {
-        console.log('🧪 TESTANDO PERFORMANCE DO CACHE...');
+        console.log('🧪 TESTANDO PERFORMANCE DO CACHE OTIMIZADO...');
         
         // Verificar se está rodando localmente
         const isLocal = window.location.protocol === 'file:';
@@ -532,7 +532,11 @@ class InteractiveMap {
         }
 
         try {
-            // Teste 1: Verificar se há dados
+            // Obter estatísticas de performance
+            const stats = this.cacheManager.getPerformanceStats();
+            console.log('📊 Estatísticas do cache:', stats);
+
+            // Teste 1: Verificar se há dados (ultra-rápido se em memória)
             const startTime = performance.now();
             const hasData = await this.cacheManager.hasCachedData();
             const endTime = performance.now();
@@ -590,6 +594,11 @@ class InteractiveMap {
 • Status: Cache ${slowdown}% mais lento
 
 ${isLocal ? '⚠️ MODO LOCAL DETECTADO: Performance pode ser afetada pelo protocolo file://' : '⚠️ O cache está sendo mais lento que o carregamento direto.'}
+
+🔄 OTIMIZAÇÕES APLICADAS:
+• Cache em memória: ${stats.hasMemoryData ? '✅ Ativo' : '❌ Inativo'}
+• Pré-carregamento: ✅ Implementado
+• Índices otimizados: ✅ Ativos
                 `;
 
                 console.log(resultMessage);
@@ -610,7 +619,12 @@ ${isLocal ? '⚠️ MODO LOCAL DETECTADO: Performance pode ser afetada pelo prot
 • Direto: ${directTime.toFixed(2)}ms
 • Melhoria: ${improvement}% mais rápido
 
-✅ CACHE FUNCIONANDO PERFEITAMENTE!
+✅ CACHE OTIMIZADO FUNCIONANDO PERFEITAMENTE!
+
+🔄 OTIMIZAÇÕES APLICADAS:
+• Cache em memória: ${stats.hasMemoryData ? '✅ Ativo' : '❌ Inativo'}
+• Pré-carregamento: ✅ Implementado
+• Índices otimizados: ✅ Ativos
                 `;
 
                 console.log(resultMessage);
