@@ -299,6 +299,9 @@ async function gerarAcionamento() {
                 console.warn(`Select com id '${id}' não encontrado ou não é um select`);
                 return '';
             }
+            if (element.selectedIndex === -1 || element.selectedIndex >= element.options.length) {
+                return '';
+            }
             return element.options[element.selectedIndex]?.text || '';
         };
 
