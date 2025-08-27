@@ -9,7 +9,19 @@
     <link rel=stylesheet href=https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css>
     <link rel=stylesheet href=styles.css>
     <link rel=manifest href=manifest.json> 
-    <script>"serviceWorker"in navigator&&navigator.serviceWorker.register("sw.js").then(()=>console.log("Service Worker registrado com sucesso!")).catch(r=>console.log("Erro ao registrar Service Worker:",r))</script>
+    <!-- Service Worker temporariamente desabilitado para modo local -->
+    <script>
+        // Verificar se está em modo servidor (http/https) antes de registrar SW
+        if (window.location.protocol === 'http:' || window.location.protocol === 'https:') {
+            if ("serviceWorker" in navigator) {
+                navigator.serviceWorker.register("sw.js")
+                    .then(() => console.log("Service Worker registrado com sucesso!"))
+                    .catch(r => console.log("Erro ao registrar Service Worker:", r));
+            }
+        } else {
+            console.log("Service Worker desabilitado em modo local (file://)");
+        }
+    </script>
        
 </head>
 <body>
