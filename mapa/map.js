@@ -149,37 +149,40 @@ class InteractiveMap {
         // Criar camadas de mapa
         this.satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
-            maxZoom: 19,
-            subdomains: 'abcd'
+            maxZoom: 18,
+            subdomains: 'abcd',
+            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
         });
 
         // Camada com nomes de ruas, estradas e lugares
         this.labelsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri',
-            maxZoom: 19,
-            opacity: 0.9
+            maxZoom: 18,
+            opacity: 0.9,
+            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
         });
 
         // Camada adicional com nomes de ruas e estradas
         this.streetsLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri',
-            maxZoom: 19,
-            opacity: 0.8
+            maxZoom: 18,
+            opacity: 0.8,
+            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
         });
 
-        // Camada com nomes de cidades e lugares importantes
-        this.citiesLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Cities/MapServer/tile/{z}/{y}/{x}', {
+        // Camada com nomes de cidades e lugares importantes (versão mais confiável)
+        this.citiesLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
             attribution: '© Esri',
-            maxZoom: 19,
-            opacity: 0.9
+            maxZoom: 18,
+            opacity: 0.7,
+            errorTileUrl: 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7'
         });
 
-        // Adicionar camadas ao mapa (satélite + nomes de bairros + nomes de ruas + nomes de cidades)
+        // Adicionar camadas ao mapa (satélite + nomes de bairros + nomes de ruas)
         // Configuração otimizada para visualização de satélite com nomes de ruas e bairros
         this.satelliteLayer.addTo(this.map);
         this.labelsLayer.addTo(this.map);
         this.streetsLayer.addTo(this.map);
-        this.citiesLayer.addTo(this.map);
 
         // Criar controle de camadas
         const baseMaps = {
@@ -191,9 +194,8 @@ class InteractiveMap {
         };
 
         const overlayMaps = {
-            "Nomes de Bairros": this.labelsLayer,
-            "Nomes de Ruas": this.streetsLayer,
-            "Nomes de Cidades": this.citiesLayer
+            "Nomes de Bairros e Lugares": this.labelsLayer,
+            "Nomes de Ruas e Estradas": this.streetsLayer
         };
 
         L.control.layers(baseMaps, overlayMaps, {
